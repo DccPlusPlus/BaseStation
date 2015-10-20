@@ -1,3 +1,6 @@
+What’s DCC++
+------------
+
 DCC++ is an open-source hardware and software system for the operation of DCC-equipped model railroads.
 
 The system consists of two parts, the DCC++ Base Station and the DCC++ Controller.
@@ -6,7 +9,7 @@ The DCC++ Base Station consists of an Arduino micro controller fitted with an Ar
 
 The DCC++ Controller provides operators with a customizable GUI to control their model railroad.  It is written in Java using the Processing graphics library and IDE and communicates with the DCC++ Base Station via a standard serial connection over a USB cable or wireless over BlueTooth.
 
-What’s in this Repository 
+What’s in this Repository
 -------------------------
 
 This repository, BaseStation-Uno, contains a complete DCC++ Base Station sketch designed for compiling and uploading into an Arduino Uno.  All sketch files are in the folder named DCCpp_Uno. More information about the sketch can be found in the included PDF file.
