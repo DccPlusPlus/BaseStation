@@ -44,31 +44,20 @@ the directions of any Turnouts being monitored or controlled by a separate inter
 #include "DCCpp_Uno.h"
 #include <EEPROM.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
-Turnout::Turnout(int id, int add, int subAdd){
-  this->id=id;
-  this->address=add;
-  this->subAddress=subAdd;
-  this->num=nTurnouts;
-  if(EEPROM.read(EE_TURNOUT+num)==0)
-    tStatus=0;
-  else
-    tStatus=1;
-  nTurnouts++;
-} // Turnout::Turnout
+extern Eeprom eeprom;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Turnout::activate(int s){
   char c[20];
-  tStatus=(s>0);                                    // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
-  sprintf(c,"a %d %d %d",address,subAddress,tStatus);
+  data.tStatus=(s>0);                                    // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
+  sprintf(c,"a %d %d %d",data.address,data.subAddress,data.tStatus);
   SerialCommand::parse(c);
-  EEPROM.write(EE_TURNOUT+num,tStatus);
+  if(num>0)
+    EEPROM.put(num,data.tStatus);
   Serial.print("<H");
-  Serial.print(id);
-  if(tStatus==0)
+  Serial.print(data.id);
+  if(data.tStatus==0)
     Serial.print(" 0>");
   else
     Serial.print(" 1>"); 
@@ -77,26 +66,158 @@ void Turnout::activate(int s){
 ///////////////////////////////////////////////////////////////////////////////
 
 Turnout* Turnout::get(int n){
-  for(int i=0;i<nTurnouts;i++){
-    if(turnouts[i].id==n)
-      return(turnouts+i);
-    }
-  return(NULL);
+  Turnout *tt;
+  for(tt=firstTurnout;tt!=NULL && tt->data.id!=n;tt=tt->nextTurnout);
+  return(tt); 
+}
+///////////////////////////////////////////////////////////////////////////////
+
+void Turnout::remove(int n){
+  Turnout *tt,*pp;
+  
+  for(tt=firstTurnout;tt!=NULL && tt->data.id!=n;pp=tt,tt=tt->nextTurnout);
+
+  if(tt==NULL){
+    Serial.print("<X>");
+    return;
+  }
+  
+  if(tt==firstTurnout)
+    firstTurnout=tt->nextTurnout;
+  else
+    pp->nextTurnout=tt->nextTurnout;
+
+  free(tt);
+
+  Serial.print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Turnout::parse(char *c){            // argument is string with id number of turnout followed by zero (not thrown) or one (thrown)
-  int n,s;
-  Turnout *t;
-  if(sscanf(c,"%d %d",&n,&s)==2){
-    t=get(n);
-    if(t!=NULL)
-      t->activate(s);
+void Turnout::show(int n){
+  Turnout *tt;
+
+  if(firstTurnout==NULL){
+    Serial.print("<X>");
+    return;
+  }
+    
+  for(tt=firstTurnout;tt!=NULL;tt=tt->nextTurnout){
+    Serial.print("<H");
+    Serial.print(tt->data.id);
+    if(n==1){
+      Serial.print(" ");
+      Serial.print(tt->data.address);
+      Serial.print(" ");
+      Serial.print(tt->data.subAddress);
+    }
+    if(tt->data.tStatus==0)
+       Serial.print(" 0>");
+     else
+       Serial.print(" 1>"); 
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int Turnout::nTurnouts=0;
+void Turnout::parse(char *c){
+  int n,s,m;
+  Turnout *t;
+  
+  switch(sscanf(c,"%d %d %d",&n,&s,&m)){
+    
+    case 2:                     // argument is string with id number of turnout followed by zero (not thrown) or one (thrown)
+      t=get(n);
+      if(t!=NULL)
+        t->activate(s);
+      else
+        Serial.print("<X>");
+      break;
+
+    case 3:                     // argument is string with id number of turnout followed by an address and subAddress
+      create(n,s,m,1);
+    break;
+
+    case 1:                     // argument is a string with id number only
+      remove(n);
+    break;
+    
+    case -1:                    // no arguments
+      show(1);                  // verbose show
+    break;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Turnout::load(){
+  int n;
+  struct TurnoutData data;
+  Turnout *tt;
+
+  n=sizeof(eeprom);
+  for(int i=0;i<eeprom.nTurnouts;i++){
+    EEPROM.get(n,data);  
+    tt=create(data.id,data.address,data.subAddress);
+    tt->data.tStatus=data.tStatus;
+    tt->num=n;
+    n+=sizeof(tt->data);
+  }  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Turnout::store(){
+  int n;
+  Turnout *tt;
+  
+  n=sizeof(eeprom);
+  tt=firstTurnout;
+  eeprom.nTurnouts=0;
+  
+  while(tt!=NULL){
+    tt->num=n;
+    EEPROM.put(n,tt->data);
+    n+=sizeof(tt->data);
+    tt=tt->nextTurnout;
+    eeprom.nTurnouts++;
+  }
+  
+}
+///////////////////////////////////////////////////////////////////////////////
+
+Turnout *Turnout::create(int id, int add, int subAdd, int v){
+  Turnout *tt;
+  
+  if(firstTurnout==NULL){
+    firstTurnout=(Turnout *)calloc(1,sizeof(Turnout));
+    tt=firstTurnout;
+  } else if((tt=get(id))==NULL){
+    tt=firstTurnout;
+    while(tt->nextTurnout!=NULL)
+      tt=tt->nextTurnout;
+    tt->nextTurnout=(Turnout *)calloc(1,sizeof(Turnout));
+    tt=tt->nextTurnout;
+  }
+
+  if(tt==NULL){       // problem allocating memory
+    if(v==1)
+      Serial.print("<X>");
+    return(tt);
+  }
+  
+  tt->data.id=id;
+  tt->data.address=add;
+  tt->data.subAddress=subAdd;
+  tt->data.tStatus=0;
+  if(v==1)
+    Serial.print("<O>");
+  return(tt);
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Turnout *Turnout::firstTurnout=NULL;
+
 

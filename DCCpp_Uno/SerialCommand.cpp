@@ -17,8 +17,10 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
 #include "Accessories.h"
+#include <EEPROM.h>
 
 extern int __heap_start, *__brkval;
+extern Eeprom eeprom;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -142,15 +144,19 @@ void SerialCommand::parse(char *com){
 
 /***** OPERATE A PRE-DEFINED TURN-OUT  ****/    
 
-    case 'T':       // <T ID THROW>
+    case 'T':       // <T ID THROW> || <T ID ADDRESS SUBADDRESS> || <T ID> || <T>
 /*
- *   sets a pre-defined turnout to either the "thrown" or "unthrown" position.
- *   if turnout has not been pre-defined, command is ignored
+ *   <T ID THROW>:                sets turnout ID to either the "thrown" or "unthrown" position - if turnout ID does not exist, command is ignored
+ *   <T ID ADDRESS SUBADDRESS>:   creates a new turnout ID, with specifcied ADDRESS and SUBADDRESS - if turnout ID already exists, it is updated with specificed ADDRESS and SUBADDRESS
+ *   <T ID>:                      deletes definition of turnout ID - if turnout ID does not exists, command is ignored
+ *   <T>:                         lists all defined turnouts
  *   
  *   ID: the numeric ID (0-32767) of the turnout to control
  *   THROW: 0 (unthrown) or 1 (thrown)
+ *   ADDRESS:  the primary address of the decoder controlling this turnout (0-511)
+ *   SUBADDRESS: the subaddress of the decoder controlling this turnout (0-3)
  *   
- *   returns: <H ID THROW>
+ *   returns: <H ID THROW> || <H ID ADDRESS SUBADDRESS THROW>
  */
       Turnout::parse(com+1);
       break;
@@ -311,23 +317,36 @@ void SerialCommand::parse(char *com){
       Serial.print(" ");
       Serial.print(__TIME__);
       Serial.print(">");
-            
-      for(int i=0;i<Turnout::nTurnouts;i++){
-        Serial.print("<H");
-        Serial.print(turnouts[i].id);
-        if(turnouts[i].tStatus==0)
-          Serial.print(" 0>");
-        else
-          Serial.print(" 1>");
-      }
-                  
+
+      Turnout::show();
+                        
       break;
-      
+
+/***** STORE SETTINGS IN EEPROM  ****/    
+
+    case 'E':     // <E>
+/*
+ *    stores settings for Turnouts in EEPROM
+ *    
+ *    returns: <e nTurnouts nSensors>
+*/
+     
+    Turnout::store();
+    Serial.print("<e ");
+    Serial.print(eeprom.nTurnouts);
+    Serial.print(" ");
+    Serial.print(eeprom.nSensors);
+    Serial.print(">");
+
+    EEPROM.put(0,eeprom);
+    break;
+    
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/    
                 
     case ' ':     // < >                
 /*
  *    simply prints a carriage return - useful when interacting with Ardiuno through serial monitor window
+ *    
  *    returns: a carriage return
 */
       Serial.println("");
