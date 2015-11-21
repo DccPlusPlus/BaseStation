@@ -158,6 +158,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 #include "Sensor.h"
 #include "SerialCommand.h"
 #include "Accessories.h"
+#include "EEStore.h"
 #include <EEPROM.h>
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
@@ -168,12 +169,6 @@ volatile RegisterList progRegs(2);                     // create a shorter list 
 
 CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
 CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
-
-Eeprom eeprom;    // stores settings for Turnouts and Sensors
-
-// OPTIONALLY CREATE A LIST OF SENSORS TO TRACK TRAIN MOVEMENTS (see Sensors.cpp for more info)
-
-Sensor sensors[]={Sensor(1,A2,HIGH),Sensor(2,A3,HIGH),Sensor(3,A4,HIGH)};           // example declaring three sensors numbered 1, 2, and 3 on pins A2, A3, and A4 of the Arduino
 
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN ARDUINO LOOP
@@ -188,9 +183,8 @@ void loop(){
     progMonitor.check();
   }
 
-  for(int i=0;i<Sensor::nSensors;i++)   // check optional track sensors
-    sensors[i].check();
-
+  Sensor::check();    // check sensors for activate/de-activate
+  
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,15 +198,7 @@ void setup(){
            
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
 
-  EEPROM.get(0,eeprom);
-  if(strncmp(eeprom.id,EEPROM_ID,sizeof(EEPROM_ID))!=0){
-    sprintf(eeprom.id,EEPROM_ID);
-    eeprom.nTurnouts=0;
-    eeprom.nSensors=0;
-    EEPROM.put(0,eeprom);    
-  }
-
-  Turnout::load();
+  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM
               
   // CONFIGURE TIMER_0 AND TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B AND OC1B INTERRUPT PINS
   

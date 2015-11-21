@@ -12,8 +12,6 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #define  BASE_STATION_VERSION  "UNO_1.0"
 
-#define  EEPROM_ID "DCC++"
-
 // Define the Arduino Pins that control various functions
 
 #define SIGNAL_ENABLE_PIN_MAIN 3
@@ -33,12 +31,6 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #define MAX_MAIN_REGISTERS 12
 
 enum { EE_NTURNOUTS, EE_NSENSORS };
-
-struct Eeprom{
-  char id[sizeof(EEPROM_ID)];
-  int nTurnouts;
-  int nSensors;
-};
 
 // Define slots for EE_PROM storage of key variables.  EE_TURNOUT must be last since it is starting point for a number of turnouts
 

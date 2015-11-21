@@ -1,6 +1,6 @@
 /**********************************************************************
 
-Sensor.cpp
+Sensor.h
 COPYRIGHT (c) 2013-2015 Gregg E. Berman
 
 Part of DCC++ BASE STATION for the Arduino Uno 
@@ -14,14 +14,26 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #define  SENSOR_DECAY  0.03
 
-struct Sensor{
-  static int nSensors;
-  int pin;
+struct SensorData {
   int snum;
+  byte pin;
+  byte pullUp;
+};
+
+struct Sensor{
+  static Sensor *firstSensor;
+  SensorData data;
   boolean active;
   float signal;
-  Sensor(int, int, int);
-  void check();  
+  Sensor *nextSensor;
+  static void load();
+  static void store();
+  static Sensor *create(int, int, int, int=0);
+  static Sensor* get(int);  
+  static void remove(int);  
+  static void show();
+  static void parse(char *c);
+  static void check();   
 }; // Sensor
 
 #endif

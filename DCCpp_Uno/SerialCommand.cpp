@@ -17,10 +17,10 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
 #include "Accessories.h"
-#include <EEPROM.h>
+#include "Sensor.h"
+#include "EEStore.h"
 
 extern int __heap_start, *__brkval;
-extern Eeprom eeprom;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -142,12 +142,12 @@ void SerialCommand::parse(char *com){
       mRegs->setAccessory(com+1);
       break;
 
-/***** OPERATE A PRE-DEFINED TURN-OUT  ****/    
+/***** CREATE/EDIT/REMOVE/SHOW & OPERATE A TURN-OUT  ****/    
 
     case 'T':       // <T ID THROW> || <T ID ADDRESS SUBADDRESS> || <T ID> || <T>
 /*
  *   <T ID THROW>:                sets turnout ID to either the "thrown" or "unthrown" position - if turnout ID does not exist, command is ignored
- *   <T ID ADDRESS SUBADDRESS>:   creates a new turnout ID, with specifcied ADDRESS and SUBADDRESS - if turnout ID already exists, it is updated with specificed ADDRESS and SUBADDRESS
+ *   <T ID ADDRESS SUBADDRESS>:   creates a new turnout ID, with specified ADDRESS and SUBADDRESS - if turnout ID already exists, it is updated with specificed ADDRESS and SUBADDRESS
  *   <T ID>:                      deletes definition of turnout ID - if turnout ID does not exists, command is ignored
  *   <T>:                         lists all defined turnouts
  *   
@@ -159,6 +159,23 @@ void SerialCommand::parse(char *com){
  *   returns: <H ID THROW> || <H ID ADDRESS SUBADDRESS THROW>
  */
       Turnout::parse(com+1);
+      break;
+
+/***** CREATE/EDIT/REMOVE/SHOW A SENSOR  ****/    
+
+    case 'S':       //  <S ID PIN PULLUP> || <S ID> || <S>
+/*
+ *   <S ID PIN SUBADDRESS>:       creates a new sensor ID, with specified PIN and PULLUP - if sensor ID already exists, it is updated with specificed PIN and PULLUP
+ *   <S ID>:                      deletes definition of sensor ID - if sensor ID does not exists, command is ignored
+ *   <S>:                         lists all defined sensor
+ *   
+ *   ID: the numeric ID (0-32767) of the sensor
+ *   PIN: the arduino pin number the sensor is connected to
+ *   PULLUP: 1=use internal pull-up resistor for PIN, 0=don't use internal pull-up resistor for PIN
+ *   
+ *   returns: <Q ID PIN PULLUP>
+ */
+      Sensor::parse(com+1);
       break;
 
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/    
@@ -331,14 +348,12 @@ void SerialCommand::parse(char *com){
  *    returns: <e nTurnouts nSensors>
 */
      
-    Turnout::store();
+    EEStore::store();
     Serial.print("<e ");
-    Serial.print(eeprom.nTurnouts);
+    Serial.print(EEStore::eeStore->data.nTurnouts);
     Serial.print(" ");
-    Serial.print(eeprom.nSensors);
+    Serial.print(EEStore::eeStore->data.nSensors);
     Serial.print(">");
-
-    EEPROM.put(0,eeprom);
     break;
     
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/    

@@ -1,0 +1,33 @@
+/**********************************************************************
+
+EEStore.h
+COPYRIGHT (c) 2013-2015 Gregg E. Berman
+
+Part of DCC++ BASE STATION for the Arduino Uno 
+
+**********************************************************************/
+
+#ifndef EEStore_h
+#define EEStore_h
+
+#define  EESTORE_ID "DCC++"
+
+struct EEStoreData{
+  char id[sizeof(EESTORE_ID)];
+  int nTurnouts;
+  int nSensors;  
+};
+
+struct EEStore{
+  static EEStore *eeStore;
+  EEStoreData data;
+  static int eeAddress;
+  static void init();
+  static void reset();
+  static int pointer();
+  static void advance(int);
+  static void store();
+};
+  
+#endif
+

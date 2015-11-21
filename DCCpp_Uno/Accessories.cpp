@@ -18,6 +18,8 @@ However, this general command simply sends the appropriate DCC instruction packe
 to operate connected accessories.  It does not store or retain any information regarding the current
 status of that accessory.
 
+UPDATE THIS SECTION !!!!!!!!!!!
+
 To have this sketch store and retain the direction of DCC-connected turnouts, as well as automatically
 invoke the required <a> command as needed, define such turnouts in a single global array declared
 in DCCpp_Uno.ino using the format:
@@ -42,9 +44,8 @@ the directions of any Turnouts being monitored or controlled by a separate inter
 #include "Accessories.h"
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
+#include "EEStore.h"
 #include <EEPROM.h>
-
-extern Eeprom eeprom;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -151,36 +152,32 @@ void Turnout::parse(char *c){
 ///////////////////////////////////////////////////////////////////////////////
 
 void Turnout::load(){
-  int n;
   struct TurnoutData data;
   Turnout *tt;
 
-  n=sizeof(eeprom);
-  for(int i=0;i<eeprom.nTurnouts;i++){
-    EEPROM.get(n,data);  
+  for(int i=0;i<EEStore::eeStore->data.nTurnouts;i++){
+    EEPROM.get(EEStore::pointer(),data);  
     tt=create(data.id,data.address,data.subAddress);
     tt->data.tStatus=data.tStatus;
-    tt->num=n;
-    n+=sizeof(tt->data);
+    tt->num=EEStore::pointer();
+    EEStore::advance(sizeof(tt->data));
   }  
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void Turnout::store(){
-  int n;
   Turnout *tt;
   
-  n=sizeof(eeprom);
   tt=firstTurnout;
-  eeprom.nTurnouts=0;
+  EEStore::eeStore->data.nTurnouts=0;
   
   while(tt!=NULL){
-    tt->num=n;
-    EEPROM.put(n,tt->data);
-    n+=sizeof(tt->data);
+    tt->num=EEStore::pointer();
+    EEPROM.put(EEStore::pointer(),tt->data);
+    EEStore::advance(sizeof(tt->data));
     tt=tt->nextTurnout;
-    eeprom.nTurnouts++;
+    EEStore::eeStore->data.nTurnouts++;
   }
   
 }
