@@ -21,17 +21,30 @@ The Sensor code below utilizes exponential smoothing to "de-bounce" spikes gener
 mechanical switches and transistors.  This avoids the need to create smoothing circuitry
 for each sensor.  You may need to change these parameters through trial and error for your specific sensors.
 
-UPDATE THIS SECTION !!!!!!!!!!!
+To have this sketch monitor one or more Arduino pins for sensor triggers, first define/edit/delete
+sensor definitions using the following variation of the "S" command:
 
-All Sensors should be defined in a single global array declared in DCCpp_Uno.ino using the format:
+  <S ID PIN PULLUP>:           creates a new sensor ID, with specified PIN and PULLUP
+                               if sensor ID already exists, it is updated with specificed PIN and PULLUP
+                               returns: <O> if successful and <X> if unsuccessful (e.g. out of memory)
 
-  Sensor(ID, PIN, PULLUP)
+  <S ID>:                      deletes definition of sensor ID
+                               returns: <O> if successful and <X> if unsuccessful (e.g. ID does not exist)
 
-  ID: a unique integer ID (0-32767) for this sensor
-  PIN: the Arudino Pin used to read the sensor
-  PULLUP: HIGH (1) to enable this Pin's internal pull-up resistor, LOW (0) to disable the internal pull-up resistor 
+  <S>:                         lists all defined sensors
+                               returns: <Q ID PIN PULLUP> for each defined sensor or <X> if no sensors defined
+  
+where
 
-All Sensors defined in the global array are repeatedly and sequentially checked within the main loop of this sketch.
+  ID: the numeric ID (0-32767) of the sensor
+  PIN: the arduino pin number the sensor is connected to
+  PULLUP: 1=use internal pull-up resistor for PIN, 0=don't use internal pull-up resistor for PIN
+
+Once all sensors have been properly defined, use the <E> command to store their definitions to EEPROM.
+If you later make edits/additions/deletions to the sensor definitions, you must invoke the <E> command if you want those
+new definitions updated in the EEPROM.
+
+All sensors defined as per above are repeatedly and sequentially checked within the main loop of this sketch.
 If a Sensor Pin is found to have transitioned from a HIGH state to a LOW state, the following serial message is generated:
 
   <Q ID>

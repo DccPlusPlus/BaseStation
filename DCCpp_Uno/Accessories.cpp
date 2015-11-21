@@ -18,24 +18,42 @@ However, this general command simply sends the appropriate DCC instruction packe
 to operate connected accessories.  It does not store or retain any information regarding the current
 status of that accessory.
 
-UPDATE THIS SECTION !!!!!!!!!!!
-
 To have this sketch store and retain the direction of DCC-connected turnouts, as well as automatically
-invoke the required <a> command as needed, define such turnouts in a single global array declared
-in DCCpp_Uno.ino using the format:
+invoke the required <a> command as needed, first define/edit/delete such turnouts using the following
+variations of the "T" command:
 
-  Turnout(ID, ADDRESS, SUBADDRESS)
+  <T ID ADDRESS SUBADDRESS>:   creates a new turnout ID, with specified ADDRESS and SUBADDRESS
+                               if turnout ID already exists, it is updated with specificed ADDRESS and SUBADDRESS
+                               returns: <O> if successful and <X> if unsuccessful (e.g. out of memory)
 
-  ID: a unique integer ID (0-32767) for this Turnout
-  ADDRESS:  the primary address of the decoder (0-511) used to control this Turnout
-  SUBADDRESS: the subaddress of the decoder (0-3) used to control this Turnout
+  <T ID>:                      deletes definition of turnout ID
+                               returns: <O> if successful and <X> if unsuccessful (e.g. ID does not exist)
 
-Changes to the direction of Turnouts declared in this fashion can be controlled by the Turnout command:
+  <T>:                         lists all defined turnouts
+                               returns: <H ID ADDRESS SUBADDRESS THROW> for each defined turnout or <X> if no turnouts defined
+  
+where
 
-  <T ID THROW>
+  ID: the numeric ID (0-32767) of the turnout to control
+  ADDRESS:  the primary address of the decoder controlling this turnout (0-511)
+  SUBADDRESS: the subaddress of the decoder controlling this turnout (0-3)
+
+Once all turnouts have been properly defined, use the <E> command to store their definitions to EEPROM.
+If you later make edits/additions/deletions to the turnout definitions, you must invoke the <E> command if you want those
+new definitions updated in the EEPROM.
+
+To "throw" turnouts that have been defined use:
+
+  <T ID THROW>:                sets turnout ID to either the "thrown" or "unthrown" position
+                               returns: <H ID THROW>, or <X> if turnout ID does not exist
+
+where
+
+  ID: the numeric ID (0-32767) of the turnout to control
+  THROW: 0 (unthrown) or 1 (thrown)
 
 When controlled as such, the Arduino updates and stores the direction of each Turnout in EEPROM so
-that it is retained even without power.  A list of the current directions of each Turnout is generated
+that it is retained even without power.  A list of the current directions of each Turnout in the form <H ID THROW> is generated
 by this sketch whenever the <s> status command is invoked.  This provides an efficient way of initializing
 the directions of any Turnouts being monitored or controlled by a separate interface or GUI program.
 
