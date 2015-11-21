@@ -45,13 +45,13 @@ If you later make edits/additions/deletions to the sensor definitions, you must 
 new definitions updated in the EEPROM.
 
 All sensors defined as per above are repeatedly and sequentially checked within the main loop of this sketch.
-If a Sensor Pin is found to have transitioned from a HIGH state to a LOW state, the following serial message is generated:
+If a Sensor Pin is found to have transitioned from one state to another, one of the following serial messages are generated:
 
-  <Q ID>
+  <Q ID>     - for transition of Sensor ID from HIGH state to LOW state (i.e. the sensor is triggered)
+  <q ID>     - for transition of Sensor ID from LOW state to HIGH state (i.e. the sensor is no longer triggered)
 
-  where ID is the ID of the Sensor that was triggered
-
-No message is generated when a Sensor Pin transitions back to a HIGH state from a LOW state. 
+Depending on whether the physical sensor is acting as an "event-trigger" or a "detection-sensor," you may
+decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 **********************************************************************/
 
@@ -73,8 +73,11 @@ void Sensor::check(){
       Serial.print("<Q");
       Serial.print(tt->data.snum);
       Serial.print(">");
-    } else if(tt->active && tt->signal>0.99){
+    } else if(tt->active && tt->signal>0.9){
       tt->active=false;
+      Serial.print("<q");
+      Serial.print(tt->data.snum);
+      Serial.print(">");
     }
   } // loop over all sensors
     
