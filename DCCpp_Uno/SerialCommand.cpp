@@ -318,8 +318,10 @@ void SerialCommand::parse(char *com){
           Serial.print(" 0>");
         }          
       }
-      Serial.print("<iDCC++ BASE STATION v");
-      Serial.print(BASE_STATION_VERSION);
+      Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");
+      Serial.print(ARDUINO_TYPE);
+      Serial.print(" / ");
+      Serial.print(MOTOR_SHIELD_NAME);
       Serial.print(": BUILD ");
       Serial.print(__DATE__);
       Serial.print(" ");
@@ -334,7 +336,7 @@ void SerialCommand::parse(char *com){
 
     case 'E':     // <E>
 /*
- *    stores settings for Turnouts in EEPROM
+ *    stores settings for turnouts and sensors EEPROM
  *    
  *    returns: <e nTurnouts nSensors>
 */
@@ -347,6 +349,19 @@ void SerialCommand::parse(char *com){
     Serial.print(">");
     break;
     
+/***** CLEAR SETTINGS IN EEPROM  ****/    
+
+    case 'e':     // <e>
+/*
+ *    clears settings for Turnouts in EEPROM
+ *    
+ *    returns: <O>
+*/
+     
+    EEStore::clear();
+    Serial.print("<O>");
+    break;
+
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/    
                 
     case ' ':     // < >                

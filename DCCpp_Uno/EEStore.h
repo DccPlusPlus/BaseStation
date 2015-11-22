@@ -27,6 +27,7 @@ struct EEStore{
   static int pointer();
   static void advance(int);
   static void store();
+  static void clear();
 };
   
 #endif

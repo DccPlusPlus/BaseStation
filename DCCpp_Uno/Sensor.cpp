@@ -42,7 +42,7 @@ where
 
 Once all sensors have been properly defined, use the <E> command to store their definitions to EEPROM.
 If you later make edits/additions/deletions to the sensor definitions, you must invoke the <E> command if you want those
-new definitions updated in the EEPROM.
+new definitions updated in the EEPROM.  You can also clear everything stored in the EEPROM by invoking the <e> command.
 
 All sensors defined as per above are repeatedly and sequentially checked within the main loop of this sketch.
 If a Sensor Pin is found to have transitioned from one state to another, one of the following serial messages are generated:

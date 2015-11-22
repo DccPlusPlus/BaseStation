@@ -108,6 +108,9 @@ void RegisterList::setThrottle(char *s) volatile{
   if(sscanf(s,"%d %d %d %d",&nReg,&cab,&tSpeed,&tDirection)!=4)
     return;
 
+  if(nReg<1 || nReg>maxNumRegs)
+    return;  
+
   if(cab>127)
     b[nB++]=highByte(cab) | 0xC0;      // convert train number into a two-byte address
     

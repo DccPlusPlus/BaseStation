@@ -36,6 +36,17 @@ void EEStore::init(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void EEStore::clear(){
+    
+  sprintf(eeStore->data.id,EESTORE_ID);                           // create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
+  eeStore->data.nTurnouts=0;
+  eeStore->data.nSensors=0;
+  EEPROM.put(0,eeStore->data);    
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void EEStore::store(){
   reset();
   Turnout::store();

@@ -40,7 +40,7 @@ where
 
 Once all turnouts have been properly defined, use the <E> command to store their definitions to EEPROM.
 If you later make edits/additions/deletions to the turnout definitions, you must invoke the <E> command if you want those
-new definitions updated in the EEPROM.
+new definitions updated in the EEPROM.  You can also clear everything stored in the EEPROM by invoking the <e> command.
 
 To "throw" turnouts that have been defined use:
 
