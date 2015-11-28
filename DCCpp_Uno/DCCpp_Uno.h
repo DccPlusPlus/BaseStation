@@ -7,6 +7,8 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 **********************************************************************/
 
+#include "Config.h"
+
 #ifndef DCCpp_Uno_h
 #define DCCpp_Uno_h
 
@@ -24,18 +26,12 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #else
 
-#error CAN'T COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 2560
+#error CAN NOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 2560
 #endif
 
+
 /////////////////////////////////////////////////////////////////////////////////////
-//
-// DEFINE MOTOR SHIELD PINS - SET MOTOR_SHIELD_TYPE ACCORDING TO THE FOLLOWING TABLE:
-//
-//  0 = ARDUINO MOTOR SHIELD          (MAX 18V/2A PER CHANNEL)
-//  1 = POLOLU MC33926 MOTOR SHIELD   (MAX 28V/3A PER CHANNEL)
-
-#define MOTOR_SHIELD_TYPE   0
-
+// SELECT MOTOR SHIELD
 /////////////////////////////////////////////////////////////////////////////////////
 
 #if MOTOR_SHIELD_TYPE == 0
@@ -66,12 +62,9 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #else
 
-#error CAN'T COMPILE - PLEASE SELECT A PROPER MOTOR SHIELD TYPE
+#error CAN NOT COMPILE - PLEASE SELECT A PROPER MOTOR SHIELD TYPE
 #endif
 
-// Define number of MAIN TRACK Registers
-
-#define MAX_MAIN_REGISTERS 12
 
 // If SHOW_PACKETS is set to 1, then for select main operations track commands that modify an internal DCC packet register,
 // if printFlag for that command is also set to 1, DCC++ BASE STATION will additionally return the 
