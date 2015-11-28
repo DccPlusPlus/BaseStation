@@ -64,6 +64,7 @@ the directions of any Turnouts being monitored or controlled by a separate inter
 #include "DCCpp_Uno.h"
 #include "EEStore.h"
 #include <EEPROM.h>
+#include "Comm.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -74,12 +75,12 @@ void Turnout::activate(int s){
   SerialCommand::parse(c);
   if(num>0)
     EEPROM.put(num,data.tStatus);
-  Serial.print("<H");
-  Serial.print(data.id);
+  INTERFACE.print("<H");
+  INTERFACE.print(data.id);
   if(data.tStatus==0)
-    Serial.print(" 0>");
+    INTERFACE.print(" 0>");
   else
-    Serial.print(" 1>"); 
+    INTERFACE.print(" 1>"); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +98,7 @@ void Turnout::remove(int n){
   for(tt=firstTurnout;tt!=NULL && tt->data.id!=n;pp=tt,tt=tt->nextTurnout);
 
   if(tt==NULL){
-    Serial.print("<X>");
+    INTERFACE.print("<X>");
     return;
   }
   
@@ -108,7 +109,7 @@ void Turnout::remove(int n){
 
   free(tt);
 
-  Serial.print("<O>");
+  INTERFACE.print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,23 +118,23 @@ void Turnout::show(int n){
   Turnout *tt;
 
   if(firstTurnout==NULL){
-    Serial.print("<X>");
+    INTERFACE.print("<X>");
     return;
   }
     
   for(tt=firstTurnout;tt!=NULL;tt=tt->nextTurnout){
-    Serial.print("<H");
-    Serial.print(tt->data.id);
+    INTERFACE.print("<H");
+    INTERFACE.print(tt->data.id);
     if(n==1){
-      Serial.print(" ");
-      Serial.print(tt->data.address);
-      Serial.print(" ");
-      Serial.print(tt->data.subAddress);
+      INTERFACE.print(" ");
+      INTERFACE.print(tt->data.address);
+      INTERFACE.print(" ");
+      INTERFACE.print(tt->data.subAddress);
     }
     if(tt->data.tStatus==0)
-       Serial.print(" 0>");
+       INTERFACE.print(" 0>");
      else
-       Serial.print(" 1>"); 
+       INTERFACE.print(" 1>"); 
   }
 }
 
@@ -150,7 +151,7 @@ void Turnout::parse(char *c){
       if(t!=NULL)
         t->activate(s);
       else
-        Serial.print("<X>");
+        INTERFACE.print("<X>");
       break;
 
     case 3:                     // argument is string with id number of turnout followed by an address and subAddress
@@ -217,7 +218,7 @@ Turnout *Turnout::create(int id, int add, int subAdd, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      Serial.print("<X>");
+      INTERFACE.print("<X>");
     return(tt);
   }
   
@@ -226,7 +227,7 @@ Turnout *Turnout::create(int id, int add, int subAdd, int v){
   tt->data.subAddress=subAdd;
   tt->data.tStatus=0;
   if(v==1)
-    Serial.print("<O>");
+    INTERFACE.print("<O>");
   return(tt);
   
 }

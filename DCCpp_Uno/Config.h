@@ -23,4 +23,14 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #define MAX_MAIN_REGISTERS 12
 
 /////////////////////////////////////////////////////////////////////////////////////
+//
+// DEFINE COMMUNICATIONS INTERFACE TYPE
+//
+//  0 = Built-in Serial Port
+//  1 = Arduino Ethernet/SD Card Shield
+//  2 = Seeed Studio Ethernet/SD Card Shield (version 2)
+
+#define COMM_TYPE   2
+
+/////////////////////////////////////////////////////////////////////////////////////
 

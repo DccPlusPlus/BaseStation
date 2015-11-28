@@ -59,6 +59,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 #include "Sensor.h"
 #include "EEStore.h"
 #include <EEPROM.h>
+#include "Comm.h"
 
 ///////////////////////////////////////////////////////////////////////////////
   
@@ -70,14 +71,14 @@ void Sensor::check(){
     
     if(!tt->active && tt->signal<0.5){
       tt->active=true;
-      Serial.print("<Q");
-      Serial.print(tt->data.snum);
-      Serial.print(">");
+      INTERFACE.print("<Q");
+      INTERFACE.print(tt->data.snum);
+      INTERFACE.print(">");
     } else if(tt->active && tt->signal>0.9){
       tt->active=false;
-      Serial.print("<q");
-      Serial.print(tt->data.snum);
-      Serial.print(">");
+      INTERFACE.print("<q");
+      INTERFACE.print(tt->data.snum);
+      INTERFACE.print(">");
     }
   } // loop over all sensors
     
@@ -101,7 +102,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      Serial.print("<X>");
+      INTERFACE.print("<X>");
     return(tt);
   }
   
@@ -114,7 +115,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
 
   if(v==1)
-    Serial.print("<O>");
+    INTERFACE.print("<O>");
   return(tt);
   
 }
@@ -134,7 +135,7 @@ void Sensor::remove(int n){
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    Serial.print("<X>");
+    INTERFACE.print("<X>");
     return;
   }
   
@@ -145,7 +146,7 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  Serial.print("<O>");
+  INTERFACE.print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,18 +155,18 @@ void Sensor::show(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    Serial.print("<X>");
+    INTERFACE.print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    Serial.print("<Q");
-    Serial.print(tt->data.snum);
-    Serial.print(" ");
-    Serial.print(tt->data.pin);
-    Serial.print(" ");
-    Serial.print(tt->data.pullUp);
-    Serial.print(">");
+    INTERFACE.print("<Q");
+    INTERFACE.print(tt->data.snum);
+    INTERFACE.print(" ");
+    INTERFACE.print(tt->data.pin);
+    INTERFACE.print(" ");
+    INTERFACE.print(tt->data.pullUp);
+    INTERFACE.print(">");
   }
 }
 
@@ -190,7 +191,7 @@ void Sensor::parse(char *c){
     break;
 
     case 2:                     // invalid number of arguments
-      Serial.print("<X>");
+      INTERFACE.print("<X>");
       break;
   }
 }

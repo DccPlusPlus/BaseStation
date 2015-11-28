@@ -160,6 +160,16 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 #include "Accessories.h"
 #include "EEStore.h"
 #include <EEPROM.h>
+#include "Config.h"
+#include <SPI.h>
+#include <EthernetV2_0.h>
+
+// SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
+
+#if (COMM_TYPE == 1) || (COMM_TYPE == 2)
+  byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF };     // define your own 6-byte MAC address (to be used for DHCP when initializing server)
+  EthernetServer INTERFACE(2560);                           // Create and instance of an EnternetServer at port 2560
+#endif
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
 // NOTE REGISTER LISTS MUST BE DECLARED WITH "VOLATILE" QUALIFIER TO ENSURE THEY ARE PROPERLY UPDATED BY INTERRUPT ROUTINES
@@ -195,11 +205,21 @@ void setup(){
 
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
-           
+
+  #ifdef SDCARD_CS
+    pinMode(SDCARD_CS,OUTPUT);
+    digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
+  #endif
+
+  #if (COMM_TYPE == 1) || (COMM_TYPE == 2)
+    Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
+    INTERFACE.begin();
+  #endif
+             
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
 
-  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM
-              
+//  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM  FIX THIS!!!!!!!!
+
   // CONFIGURE TIMER_0 AND TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B AND OC1B INTERRUPT PINS
   
   // Direction Pin for Motor Shield Channel A - MAIN OPERATIONS TRACK
@@ -239,6 +259,7 @@ void setup(){
       
   bitSet(TIMSK1,OCIE1B);    // enable interrupt vector for Timer 1 Output Compare B Match (OCR1B)    
 
+
   // Directon Pin for Motor Shield Channel B - PROGRAMMING TRACK
   // Controlled by Arduino 8-bit TIMER 0 / OC0B Interrupt Pin
   // Values for 8-bit OCR0A and OCR0B registers calibrated for 1:64 prescale at 16 MHz clock frequency
@@ -259,8 +280,10 @@ void setup(){
   bitSet(TCCR0A,WGM01);
   bitSet(TCCR0B,WGM02);
 
-  bitSet(TCCR0A,COM0B1);    // set Timer 0, OC0B (pin 5) to inverting toggle (actual direction is arbitrary)
+/*     
+  bitSet(TCCR0A,COM0B1);    // set Timer 0, OC0B (pin 5/UNO 4/MEGA) to inverting toggle (actual direction is arbitrary)
   bitSet(TCCR0A,COM0B0);
+*/
 
   bitClear(TCCR0B,CS02);    // set Timer 0 prescale=64
   bitSet(TCCR0B,CS01);
@@ -274,6 +297,7 @@ void setup(){
   progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1    
       
   bitSet(TIMSK0,OCIE0B);    // enable interrupt vector for Timer 0 Output Compare B Match (OCR0B)
+
 
 } // setup
 

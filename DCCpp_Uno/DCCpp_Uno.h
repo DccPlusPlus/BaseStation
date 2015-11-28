@@ -12,23 +12,30 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #ifndef DCCpp_Uno_h
 #define DCCpp_Uno_h
 
-#if defined  ARDUINO_AVR_UNO
-#define ARDUINO_TYPE    "UNO"
+/////////////////////////////////////////////////////////////////////////////////////
+// AUTO-SELECT ARDUINO BOARD
+/////////////////////////////////////////////////////////////////////////////////////
 
-#define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno
-#define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno
+#if defined  ARDUINO_AVR_UNO
+
+  #define ARDUINO_TYPE    "UNO"
+
+  #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno
+  #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno
 
 #elif defined  ARDUINO_AVR_MEGA2560
-#define ARDUINO_TYPE    "MEGA"
 
-#define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega
-#define DCC_SIGNAL_PIN_PROG 4           // Arduino Mega
+  #define ARDUINO_TYPE    "MEGA"
+
+  #define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega
+  //#define DCC_SIGNAL_PIN_PROG 4           // Arduino Mega
+  #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega - Alternative
 
 #else
 
-#error CAN NOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 2560
-#endif
+  #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 2560
 
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SELECT MOTOR SHIELD
@@ -36,35 +43,65 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #if MOTOR_SHIELD_TYPE == 0
 
-#define MOTOR_SHIELD_NAME "ARDUINO MOTOR SHIELD"
+  #define MOTOR_SHIELD_NAME "ARDUINO MOTOR SHIELD"
 
-#define SIGNAL_ENABLE_PIN_MAIN 3
-#define SIGNAL_ENABLE_PIN_PROG 11
+  #define SIGNAL_ENABLE_PIN_MAIN 3
+  #define SIGNAL_ENABLE_PIN_PROG 11
 
-#define CURRENT_MONITOR_PIN_MAIN A0
-#define CURRENT_MONITOR_PIN_PROG A1
+  #define CURRENT_MONITOR_PIN_MAIN A0
+  #define CURRENT_MONITOR_PIN_PROG A1
 
-#define DIRECTION_MOTOR_CHANNEL_PIN_A 12
-#define DIRECTION_MOTOR_CHANNEL_PIN_B 13
+  #define DIRECTION_MOTOR_CHANNEL_PIN_A 12
+  #define DIRECTION_MOTOR_CHANNEL_PIN_B 13
 
 #elif MOTOR_SHIELD_TYPE == 1
 
-#define MOTOR_SHIELD_NAME "POLOLU MC33926 MOTOR SHIELD"
+  #define MOTOR_SHIELD_NAME "POLOLU MC33926 MOTOR SHIELD"
 
-#define SIGNAL_ENABLE_PIN_MAIN 9
-#define SIGNAL_ENABLE_PIN_PROG 11
+  #define SIGNAL_ENABLE_PIN_MAIN 9
+  #define SIGNAL_ENABLE_PIN_PROG 11
 
-#define CURRENT_MONITOR_PIN_MAIN A0
-#define CURRENT_MONITOR_PIN_PROG A1
+  #define CURRENT_MONITOR_PIN_MAIN A0
+  #define CURRENT_MONITOR_PIN_PROG A1
 
-#define DIRECTION_MOTOR_CHANNEL_PIN_A 7
-#define DIRECTION_MOTOR_CHANNEL_PIN_B 8
+  #define DIRECTION_MOTOR_CHANNEL_PIN_A 7
+  #define DIRECTION_MOTOR_CHANNEL_PIN_B 8
 
 #else
 
-#error CAN NOT COMPILE - PLEASE SELECT A PROPER MOTOR SHIELD TYPE
+  #error CANNOT COMPILE - PLEASE SELECT A PROPER MOTOR SHIELD TYPE
+
 #endif
 
+/////////////////////////////////////////////////////////////////////////////////////
+// SELECT COMMUNICATION INTERACE
+/////////////////////////////////////////////////////////////////////////////////////
+
+#if COMM_TYPE == 0
+
+  #define INTERFACE Serial
+
+#elif COMM_TYPE == 1
+
+  #define INTERFACE eServer
+  #define W5100_CS  10
+  #define SDCARD_CS 4
+  
+#elif COMM_TYPE == 2
+
+  #define INTERFACE eServer
+  #define W5200_CS  10
+  #define SDCARD_CS 4
+
+#else
+
+  #error CANNOT COMPILE - PLEASE SELECT A PROPER COMMUNICATIONS INTERFACE TYPE
+
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////////
+// SET WHETHER TO SHOW PACKETS - DIAGNOSTIC MODE ONLY
+/////////////////////////////////////////////////////////////////////////////////////
 
 // If SHOW_PACKETS is set to 1, then for select main operations track commands that modify an internal DCC packet register,
 // if printFlag for that command is also set to 1, DCC++ BASE STATION will additionally return the 
@@ -80,6 +117,8 @@ Part of DCC++ BASE STATION for the Arduino Uno
 //    REPEAT: the number of times the DCC packet was re-transmitted to the tracks after its iniital transmission
  
 #define SHOW_PACKETS  0       // set to zero to disable printing of every packet for select main operations track commands
+
+/////////////////////////////////////////////////////////////////////////////////////
 
 #endif
 
