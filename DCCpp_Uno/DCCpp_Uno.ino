@@ -218,6 +218,27 @@ void setup(){
              
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
 
+  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
+  Serial.print(ARDUINO_TYPE);
+  Serial.print(" / ");
+  Serial.print(MOTOR_SHIELD_NAME);
+  Serial.print(": BUILD ");
+  Serial.print(__DATE__);
+  Serial.print(" ");
+  Serial.print(__TIME__);
+  Serial.print(">");
+
+  Serial.print("<N");
+  Serial.print(COMM_TYPE);
+  Serial.print(": ");
+
+  #if (COMM_TYPE == 0)
+    Serial.print("SERIAL>");
+  #elif (COMM_TYPE == 1) || (COMM_TYPE == 2)
+    Serial.print(Ethernet.localIP());
+    Serial.print(">");
+  #endif
+  
 //  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM  FIX THIS!!!!!!!!
 
   // CONFIGURE TIMER_0 AND TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B AND OC1B INTERRUPT PINS
