@@ -162,11 +162,11 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 #include <EEPROM.h>
 #include "Config.h"
 #include <SPI.h>
-#include <EthernetV2_0.h>
+#include <EthernetV2_0.h>           // FOR SEEED STUDIO ETHERNET SHIELD V2.0
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
-#if (COMM_TYPE == 1) || (COMM_TYPE == 2)
+#if COMM_TYPE == 1
   byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF };     // define your own 6-byte MAC address (to be used for DHCP when initializing server)
   EthernetServer INTERFACE(2560);                           // Create and instance of an EnternetServer at port 2560
 #endif
@@ -211,12 +211,14 @@ void setup(){
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
   #endif
 
-  #if (COMM_TYPE == 1) || (COMM_TYPE == 2)
+  #if COMM_TYPE == 1
     Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
     INTERFACE.begin();
   #endif
              
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
+
+  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM  FIX THIS!!!!!!!!
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
@@ -232,16 +234,14 @@ void setup(){
   Serial.print(COMM_TYPE);
   Serial.print(": ");
 
-  #if (COMM_TYPE == 0)
+  #if COMM_TYPE == 0
     Serial.print("SERIAL>");
-  #elif (COMM_TYPE == 1) || (COMM_TYPE == 2)
+  #elif COMM_TYPE == 1
     Serial.print(Ethernet.localIP());
     Serial.print(">");
   #endif
   
-//  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM  FIX THIS!!!!!!!!
-
-  // CONFIGURE TIMER_0 AND TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B AND OC1B INTERRUPT PINS
+  // CONFIGURE TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC1B INTERRUPT PINS
   
   // Direction Pin for Motor Shield Channel A - MAIN OPERATIONS TRACK
   // Controlled by Arduino 16-bit TIMER 1 / OC1B Interrupt Pin
@@ -257,14 +257,14 @@ void setup(){
   pinMode(DIRECTION_MOTOR_CHANNEL_PIN_A,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
   digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_A,LOW);
 
-  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // FOR UNO ONLY: DCC SIGNAL on Timer 1 / OC1B PIN D10 OUTPUT MUST BE CONNECTED TO PIN D12 INPUT (DIRECTION A on MOTOR CHANNEL A)
+  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUPUT PIN MUT BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
 
   bitSet(TCCR1A,WGM10);     // set Timer 1 to FAST PWM, with TOP=OCR1A
   bitSet(TCCR1A,WGM11);
   bitSet(TCCR1B,WGM12);
   bitSet(TCCR1B,WGM13);
 
-  bitSet(TCCR1A,COM1B1);    // set Timer 1, OC1B (pin 10) to inverting toggle (actual direction is arbitrary)
+  bitSet(TCCR1A,COM1B1);    // set Timer 1, OC1B (pin 10/UNO, pin 12/MEGA) to inverting toggle (actual direction is arbitrary)
   bitSet(TCCR1A,COM1B0);
 
   bitClear(TCCR1B,CS12);    // set Timer 1 prescale=1
@@ -280,7 +280,10 @@ void setup(){
       
   bitSet(TIMSK1,OCIE1B);    // enable interrupt vector for Timer 1 Output Compare B Match (OCR1B)    
 
-
+  // CONFIGURE EITHER TIMER_0 (UNO) OR TIMER_3 (MEGA) TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B (UNO) OR OC3B (MEGA) INTERRUPT PINS
+  
+#ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+  
   // Directon Pin for Motor Shield Channel B - PROGRAMMING TRACK
   // Controlled by Arduino 8-bit TIMER 0 / OC0B Interrupt Pin
   // Values for 8-bit OCR0A and OCR0B registers calibrated for 1:64 prescale at 16 MHz clock frequency
@@ -295,16 +298,14 @@ void setup(){
   pinMode(DIRECTION_MOTOR_CHANNEL_PIN_B,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
   digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_B,LOW);
 
-  pinMode(DCC_SIGNAL_PIN_PROG,OUTPUT);       // DCC SIGNAL on Timer 0 / OC0B PIN D5 (UNO) or PIN D4 (MEGA) OUTPUT MUST BE CONNECTED TO PIN D13 INPUT (DIRECTION B on MOTOR CHANNEL B)
+  pinMode(DCC_SIGNAL_PIN_PROG,OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
 
   bitSet(TCCR0A,WGM00);     // set Timer 0 to FAST PWM, with TOP=OCR0A
   bitSet(TCCR0A,WGM01);
   bitSet(TCCR0B,WGM02);
-
-/*     
-  bitSet(TCCR0A,COM0B1);    // set Timer 0, OC0B (pin 5/UNO 4/MEGA) to inverting toggle (actual direction is arbitrary)
+     
+  bitSet(TCCR0A,COM0B1);    // set Timer 0, OC0B (pin 5) to inverting toggle (actual direction is arbitrary)
   bitSet(TCCR0A,COM0B0);
-*/
 
   bitClear(TCCR0B,CS02);    // set Timer 0 prescale=64
   bitSet(TCCR0B,CS01);
@@ -319,6 +320,46 @@ void setup(){
       
   bitSet(TIMSK0,OCIE0B);    // enable interrupt vector for Timer 0 Output Compare B Match (OCR0B)
 
+#else      // Configuration for MEGA
+
+  // Directon Pin for Motor Shield Channel B - PROGRAMMING TRACK
+  // Controlled by Arduino 16-bit TIMER 3 / OC3B Interrupt Pin
+  // Values for 16-bit OCR3A and OCR3B registers calibrated for 1:1 prescale at 16 MHz clock frequency
+  // Resulting waveforms are 200 microseconds for a ZERO bit and 116 microseconds for a ONE bit with exactly 50% duty cycle
+
+  #define DCC_ZERO_BIT_TOTAL_DURATION_TIMER3 3199
+  #define DCC_ZERO_BIT_PULSE_DURATION_TIMER3 1599
+
+  #define DCC_ONE_BIT_TOTAL_DURATION_TIMER3 1855
+  #define DCC_ONE_BIT_PULSE_DURATION_TIMER3 927
+
+  pinMode(DIRECTION_MOTOR_CHANNEL_PIN_B,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
+  digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_B,LOW);
+
+  pinMode(DCC_SIGNAL_PIN_PROG,OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-B OF MOTOR CHANNEL-B
+
+  bitSet(TCCR3A,WGM30);     // set Timer 3 to FAST PWM, with TOP=OCR3A
+  bitSet(TCCR3A,WGM31);
+  bitSet(TCCR3B,WGM32);
+  bitSet(TCCR3B,WGM33);
+
+  bitSet(TCCR1A,COM3B1);    // set Timer 3, OC3B (pin 2) to inverting toggle (actual direction is arbitrary)
+  bitSet(TCCR1A,COM3B0);
+
+  bitClear(TCCR1B,CS32);    // set Timer 3 prescale=1
+  bitClear(TCCR1B,CS31);
+  bitSet(TCCR1B,CS30);
+    
+  OCR3A=DCC_ONE_BIT_TOTAL_DURATION_TIMER3;
+  OCR3B=DCC_ONE_BIT_PULSE_DURATION_TIMER3;
+  
+  pinMode(SIGNAL_ENABLE_PIN_PROG,OUTPUT);   // master enable for motor channel B
+
+  progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1    
+      
+  bitSet(TIMSK3,OCIE3B);    // enable interrupt vector for Timer 3 Output Compare B Match (OCR3B)    
+  
+#endif
 
 } // setup
 
@@ -390,9 +431,19 @@ ISR(TIMER1_COMPB_vect){              // set interrupt service for OCR1B of TIMER
   DCC_SIGNAL(mainRegs,1)
 }
 
+#ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+
 ISR(TIMER0_COMPB_vect){              // set interrupt service for OCR1B of TIMER-0 which flips direction bit of Motor Shield Channel B controlling Prog Track
   DCC_SIGNAL(progRegs,0)
 }
+
+#else      // Configuration for MEGA
+
+ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER-3 which flips direction bit of Motor Shield Channel B controlling Prog Track
+  DCC_SIGNAL(progRegs,3)
+}
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 

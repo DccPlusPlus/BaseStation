@@ -30,7 +30,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 //  1 = Arduino Ethernet/SD Card Shield
 //  2 = Seeed Studio Ethernet/SD Card Shield (version 2)
 
-#define COMM_TYPE   2
+#define COMM_TYPE   1
 
 /////////////////////////////////////////////////////////////////////////////////////
 

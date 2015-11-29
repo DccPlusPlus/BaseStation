@@ -56,7 +56,7 @@ void SerialCommand::process(){
        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
     } // while
   
-  #elif (COMM_TYPE == 1) || (COMM_TYPE == 2)
+  #elif COMM_TYPE == 1
 
     EthernetClient client=INTERFACE.available();
 
@@ -354,9 +354,9 @@ void SerialCommand::parse(char *com){
       INTERFACE.print(COMM_TYPE);
       INTERFACE.print(": ");
 
-      #if (COMM_TYPE == 0)
+      #if COMM_TYPE == 0
         INTERFACE.print("SERIAL>");
-      #elif (COMM_TYPE == 1) || (COMM_TYPE == 2)
+      #elif COMM_TYPE == 1
         INTERFACE.print(Ethernet.localIP());
         INTERFACE.print(">");
       #endif

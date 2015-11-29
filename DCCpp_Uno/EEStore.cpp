@@ -16,6 +16,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 ///////////////////////////////////////////////////////////////////////////////
 
 void EEStore::init(){
+
   
   eeStore=(EEStore *)calloc(1,sizeof(EEStore));
 

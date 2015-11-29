@@ -84,15 +84,8 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #elif COMM_TYPE == 1
 
   #define INTERFACE eServer
-  #define W5100_CS  10
   #define SDCARD_CS 4
   
-#elif COMM_TYPE == 2
-
-  #define INTERFACE eServer
-  #define W5200_CS  10
-  #define SDCARD_CS 4
-
 #else
 
   #error CANNOT COMPILE - PLEASE SELECT A PROPER COMMUNICATIONS INTERFACE TYPE

@@ -230,7 +230,7 @@ void RegisterList::readCV(char *s) volatile{
     loadPacket(0,resetPacket,2,2);
     loadPacket(0,idlePacket,2,1);          // this forces code to hang in loadPacket until resetPacket is starting to process
     
-    for(int i=0;i<ACK_CURRENT_COUNT;i++){
+    for(int j=0;j<ACK_CURRENT_COUNT;j++){
       c+=analogRead(CURRENT_MONITOR_PIN_PROG);
     }
  
