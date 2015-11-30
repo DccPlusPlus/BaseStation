@@ -28,8 +28,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
   #define ARDUINO_TYPE    "MEGA"
 
   #define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega
-  //#define DCC_SIGNAL_PIN_PROG 4           // Arduino Mega
-  #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega - Alternative
+  #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega
 
 #else
 

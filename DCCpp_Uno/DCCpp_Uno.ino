@@ -151,7 +151,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 **********************************************************************/
 
 // BEGIN BY INCLUDING THE HEADER FILES FOR EACH MODULE
-
+ 
 #include "DCCpp_Uno.h"
 #include "PacketRegister.h"
 #include "CurrentMonitor.h"
@@ -162,7 +162,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 #include <EEPROM.h>
 #include "Config.h"
 #include <SPI.h>
-#include <EthernetV2_0.h>           // FOR SEEED STUDIO ETHERNET SHIELD V2.0
+#include <EthernetV2_0.h>
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 

@@ -191,6 +191,15 @@ void SerialCommand::parse(char *com){
       Sensor::parse(com+1);
       break;
 
+/***** SHOW STATUS OF ALL SENSORS ****/
+
+    case 'Q':         // <Q>
+/*
+ *    returns: the status of each sensor ID in the form <Q ID> (active) or <q ID> (not active)
+ */
+      Sensor::status();
+      break;
+
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/    
 
     case 'w':      // <w CAB CV VALUE>

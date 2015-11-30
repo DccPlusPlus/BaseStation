@@ -28,9 +28,16 @@ Part of DCC++ BASE STATION for the Arduino Uno
 //
 //  0 = Built-in Serial Port
 //  1 = Arduino Ethernet/SD Card Shield
-//  2 = Seeed Studio Ethernet/SD Card Shield (version 2)
 
 #define COMM_TYPE   1
 
 /////////////////////////////////////////////////////////////////////////////////////
+//
+// DEFINE NAME OF ETHERNET LIBRARY TO INCLUDE (DIFFERENT SHIELDS MAY USE THEIR OWN LIBRARIES)
+// *** ALSO MUST ADD THIS AS AN EXPLICIT INCLUDE FILE TO "DCCpp_Uno" ***
+
+#define ETHERNET_LIBRARY  <EthernetV2_0.h>
+
+/////////////////////////////////////////////////////////////////////////////////////
+
 

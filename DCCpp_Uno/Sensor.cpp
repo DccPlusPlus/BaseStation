@@ -172,6 +172,23 @@ void Sensor::show(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Sensor::status(){
+  Sensor *tt;
+
+  if(firstSensor==NULL){
+    INTERFACE.print("<X>");
+    return;
+  }
+    
+  for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
+    INTERFACE.print(tt->active?"<Q":"<q");
+    INTERFACE.print(tt->data.snum);
+    INTERFACE.print(">");
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void Sensor::parse(char *c){
   int n,s,m;
   Sensor *t;
