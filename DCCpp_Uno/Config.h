@@ -29,7 +29,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 //  0 = Built-in Serial Port
 //  1 = Arduino Ethernet/SD Card Shield
 
-#define COMM_TYPE   1
+#define COMM_TYPE   0
 
 /////////////////////////////////////////////////////////////////////////////////////
 //

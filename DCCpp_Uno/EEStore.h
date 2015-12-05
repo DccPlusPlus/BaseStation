@@ -16,6 +16,7 @@ struct EEStoreData{
   char id[sizeof(EESTORE_ID)];
   int nTurnouts;
   int nSensors;  
+  int nOutputs;
 };
 
 struct EEStore{

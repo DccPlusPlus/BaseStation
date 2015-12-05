@@ -18,6 +18,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include "DCCpp_Uno.h"
 #include "Accessories.h"
 #include "Sensor.h"
+#include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
 
@@ -181,6 +182,23 @@ void SerialCommand::parse(char *com){
       Turnout::parse(com+1);
       break;
 
+/***** CREATE/EDIT/REMOVE/SHOW & OPERATE AN OUTPUT PIN  ****/    
+
+    case 'Z':       // <Z ID ACTIVATE>
+/*
+ *   <Z ID ACTIVATE>:          sets output ID to either the "active" or "inactive" state
+ *   
+ *   ID: the numeric ID (0-32767) of the output to control
+ *   ACTIVATE: 0 (active) or 1 (inactive)
+ *   
+ *   returns: <Y ID ACTIVATE> or <X> if output ID does not exist
+ *   
+ *   *** SEE OUTPUTS.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "O" COMMAND
+ *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
+ */
+      Output::parse(com+1);
+      break;
+      
 /***** CREATE/EDIT/REMOVE/SHOW A SENSOR  ****/    
 
     case 'S': 
@@ -371,6 +389,7 @@ void SerialCommand::parse(char *com){
       #endif
       
       Turnout::show();
+      Output::show();
                         
       break;
 
@@ -388,6 +407,8 @@ void SerialCommand::parse(char *com){
     INTERFACE.print(EEStore::eeStore->data.nTurnouts);
     INTERFACE.print(" ");
     INTERFACE.print(EEStore::eeStore->data.nSensors);
+    INTERFACE.print(" ");
+    INTERFACE.print(EEStore::eeStore->data.nOutputs);
     INTERFACE.print(">");
     break;
     
