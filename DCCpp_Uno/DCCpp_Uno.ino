@@ -19,11 +19,11 @@ COPYRIGHT (c) 2013-2015 Gregg E. Berman
 **********************************************************************/
 /**********************************************************************
       
-DCC++ BASE STATION is a C++ program written for the Arduino Uno
+DCC++ BASE STATION is a C++ program written for the Arduino Uno and Arduino Mega
 using the Arduino IDE.
 
-It allows a standard Arduino Uno with an Arduino Motor Shield to be used
-as a fully-functioning digital command and control (DCC) base station
+It allows a standard Arduino Uno or Mega with an Arduino Motor Shield (as well as others)
+to be used as a fully-functioning digital command and control (DCC) base station
 for controlling model train layouts that conform to current National Model
 Railroad Association (NMRA) DCC standards.
 
@@ -47,6 +47,9 @@ DCC++ BASE STATION is controlled with simple text commands received via
 the Arduino's serial interface.  Users can type these commands directly
 into the Arduino IDE Serial Monitor, or can send such commands from another
 device or computer program.
+
+When compiled for the Arduino Mega, an Ethernet Shield can be used for network
+communications instead of using serial communications.
 
 DCC++ CONTROLLER, available separately under a similar open-source
 license, is a Java program written using the Processing library and Processing IDE
@@ -76,10 +79,10 @@ REFERENCES:
 
 BRIEF NOTES ON THE THEORY AND OPERATION OF DCC++ BASE STATION:
 
-DCC++ BASE STATION configures the OC0B interrupt pin associated with Timer 0,
+DCC++ BASE STATION for the Uno configures the OC0B interrupt pin associated with Timer 0,
 and the OC1B interupt pin associated with Timer 1, to generate separate 0-5V
 unipolar signals that each properly encode zero and one bits conforming with
-DCC timing standards.
+DCC timing standards.  When compiled for the Mega, DCC++ BASE STATION uses OC3B instead of OC0B.
 
 Series of DCC bit streams are bundled into Packets that each form the basis of
 a standard DCC instruction.  Packets are stored in Packet Registers that contain
@@ -114,13 +117,20 @@ and provided there are no other packets received in between the repeats, the DCC
 Some DCC decoders actually require receipt of sequential multiple identical one-time packets as a way of
 verifying proper transmittal before acting on the instructions contained in those packets
 
-An Arduino Motor Shield, powered by a standard 15V DC power supply and attached
-on top of the Arduino Uno, is used to transform the 0-5V DCC logic signals
+An Arduino Motor Shield (or similar), powered by a standard 15V DC power supply and attached
+on top of the Arduino Uno or Mega, is used to transform the 0-5V DCC logic signals
 produced by the Uno's Timer interrupts into proper 0-15V bi-polar DCC signals.
 
-This is accomplished by using one small jumper wire to connect the Uno's OC1B output pin
-to the Motor Shield's DIRECTION A input pin, and another small jumper wire to connect
-the Uno's OC0B output to the Motor Shield's DIRECTION B input pin.
+This is accomplished on the Uno by using one small jumper wire to connect the Uno's OC1B output (pin 10)
+to the Motor Shield's DIRECTION A input (pin 12), and another small jumper wire to connect
+the Uno's OC0B output (pin 5) to the Motor Shield's DIRECTION B input (pin 13).
+
+For the Mega, the OC1B output is produced directly on pin 12, so no jumper is needed to connect to the
+Motor Shield's DIRECTION A input.  However, one small jumper wire is needed to connect the Mega's OC3B output (pin 2)
+to the Motor Shield's DIRECTION A input (pin 12), and another small jumper wire to connect
+to the Motor Shield's DIRECTION B input (pin 13).
+
+Other Motor Shields may require different sets of jumper or configurations (see Config.h and DCCpp_Uno.h for details).
 
 When configured as such, the CHANNEL A and CHANNEL B outputs of the Motor Shield may be
 connected directly to the tracks.  This software assumes CHANNEL A is connected
@@ -148,6 +158,8 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
   Sensor:           contains methods to monitor and report on the status of optionally-defined infrared
                     sensors embedded in the Main Track and connected to various pins on the Arudino Uno
 
+  Outputs:          contains methods to configure one or more Arduino pins as an output for your own custom use
+
 **********************************************************************/
 
 // BEGIN BY INCLUDING THE HEADER FILES FOR EACH MODULE
@@ -168,7 +180,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 
 #if COMM_TYPE == 1
   byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF };     // define your own 6-byte MAC address (to be used for DHCP when initializing server)
-  EthernetServer INTERFACE(2560);                           // Create and instance of an EnternetServer at port 2560
+  EthernetServer INTERFACE(ETHERNET_PORT);                  // Create and instance of an EnternetServer
 #endif
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
@@ -257,7 +269,7 @@ void setup(){
   pinMode(DIRECTION_MOTOR_CHANNEL_PIN_A,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
   digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_A,LOW);
 
-  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUPUT PIN MUT BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
+  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
 
   bitSet(TCCR1A,WGM10);     // set Timer 1 to FAST PWM, with TOP=OCR1A
   bitSet(TCCR1A,WGM11);

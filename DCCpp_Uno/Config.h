@@ -9,7 +9,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-// DEFINE MOTOR SHIELD PINS - SET MOTOR_SHIELD_TYPE ACCORDING TO THE FOLLOWING TABLE:
+// DEFINE MOTOR_SHIELD_TYPE ACCORDING TO THE FOLLOWING TABLE:
 //
 //  0 = ARDUINO MOTOR SHIELD          (MAX 18V/2A PER CHANNEL)
 //  1 = POLOLU MC33926 MOTOR SHIELD   (MAX 28V/3A PER CHANNEL)
@@ -39,5 +39,11 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #define ETHERNET_LIBRARY  <EthernetV2_0.h>
 
 /////////////////////////////////////////////////////////////////////////////////////
+//
+// DEFINE PORT TO USE FOR ETHERNET COMMUNICATIONS INTERFACE
+//
 
+#define ETHERNET_PORT 2560
+
+/////////////////////////////////////////////////////////////////////////////////////
 

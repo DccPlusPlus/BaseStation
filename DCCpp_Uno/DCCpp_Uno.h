@@ -16,23 +16,27 @@ Part of DCC++ BASE STATION for the Arduino Uno
 // AUTO-SELECT ARDUINO BOARD
 /////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef ARDUINO_AVR_MEGA                   // is using Mega 1280, define as Mega 2560 (pinouts and functionality are identical)
+  #define ARDUINO_AVR_MEGA2560
+#endif
+
 #if defined  ARDUINO_AVR_UNO
 
   #define ARDUINO_TYPE    "UNO"
 
-  #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno
-  #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno
+  #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno  - uses OC1B
+  #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno  - uses OC0B
 
 #elif defined  ARDUINO_AVR_MEGA2560
 
   #define ARDUINO_TYPE    "MEGA"
 
-  #define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega
-  #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega
+  #define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega - uses OC1B
+  #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega - uses OC3B
 
 #else
 
-  #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 2560
+  #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 1280/2560
 
 #endif
 
