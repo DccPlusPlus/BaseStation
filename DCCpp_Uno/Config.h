@@ -3,7 +3,7 @@
 Config.h
 COPYRIGHT (c) 2013-2015 Gregg E. Berman
 
-Part of DCC++ BASE STATION for the Arduino Uno 
+Part of DCC++ BASE STATION for the Arduino
 
 **********************************************************************/
 
@@ -34,9 +34,8 @@ Part of DCC++ BASE STATION for the Arduino Uno
 /////////////////////////////////////////////////////////////////////////////////////
 //
 // DEFINE NAME OF ETHERNET LIBRARY TO INCLUDE (DIFFERENT SHIELDS MAY USE THEIR OWN LIBRARIES)
-// *** ALSO MUST ADD THIS AS AN EXPLICIT INCLUDE FILE TO "DCCpp_Uno" ***
 
-#define ETHERNET_LIBRARY  <EthernetV2_0.h>
+#define ETHERNET_LIBRARY  <EthernetV2_0.h>        // https://github.com/Seeed-Studio/Ethernet_Shield_W5200
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -44,6 +43,13 @@ Part of DCC++ BASE STATION for the Arduino Uno
 //
 
 #define ETHERNET_PORT 2560
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// DEFINE MAC ADDRESS ARRAY FOR ETHERNET COMMUNICATIONS INTERFACE
+//
+
+#define MAC_ADDRESS {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF }
 
 /////////////////////////////////////////////////////////////////////////////////////
 

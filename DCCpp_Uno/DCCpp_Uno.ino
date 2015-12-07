@@ -20,7 +20,7 @@ COPYRIGHT (c) 2013-2015 Gregg E. Berman
 /**********************************************************************
       
 DCC++ BASE STATION is a C++ program written for the Arduino Uno and Arduino Mega
-using the Arduino IDE.
+using the Arduino IDE 1.6.6.
 
 It allows a standard Arduino Uno or Mega with an Arduino Motor Shield (as well as others)
 to be used as a fully-functioning digital command and control (DCC) base station
@@ -30,7 +30,7 @@ Railroad Association (NMRA) DCC standards.
 This version of DCC++ BASE STATION supports:
 
   * 2-byte and 4-byte locomotive addressing
-  * Simultaneous control of multiple locomotives (currently configured for max of 12)
+  * Simultaneous control of multiple locomotives
   * 128-step speed throttling
   * Cab functions F0-F28
   * Activate/de-activate accessory functions using 512 addresses, each with 4 sub-addresses
@@ -160,6 +160,11 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 
   Outputs:          contains methods to configure one or more Arduino pins as an output for your own custom use
 
+  EEStore:          contains methods to store, update, and load various DCC settings and status
+                    (e.g. the states of all defined turnouts) in the EEPROM for recall after power-up
+
+DCC++ BASE STATION is configured through the Config.h file that contains all user-definable parameters                    
+
 **********************************************************************/
 
 // BEGIN BY INCLUDING THE HEADER FILES FOR EACH MODULE
@@ -171,15 +176,13 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 #include "SerialCommand.h"
 #include "Accessories.h"
 #include "EEStore.h"
-#include <EEPROM.h>
 #include "Config.h"
-#include <SPI.h>
-#include <EthernetV2_0.h>
+#include "Comm.h"
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
 #if COMM_TYPE == 1
-  byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF };     // define your own 6-byte MAC address (to be used for DHCP when initializing server)
+  byte mac[] =  MAC_ADDRESS;                                // Create MAC address (to be used for DHCP when initializing server)
   EthernetServer INTERFACE(ETHERNET_PORT);                  // Create and instance of an EnternetServer
 #endif
 
