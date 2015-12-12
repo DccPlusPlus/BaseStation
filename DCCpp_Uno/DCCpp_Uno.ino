@@ -127,7 +127,6 @@ the Uno's OC0B output (pin 5) to the Motor Shield's DIRECTION B input (pin 13).
 
 For the Mega, the OC1B output is produced directly on pin 12, so no jumper is needed to connect to the
 Motor Shield's DIRECTION A input.  However, one small jumper wire is needed to connect the Mega's OC3B output (pin 2)
-to the Motor Shield's DIRECTION A input (pin 12), and another small jumper wire to connect
 to the Motor Shield's DIRECTION B input (pin 13).
 
 Other Motor Shields may require different sets of jumper or configurations (see Config.h and DCCpp_Uno.h for details).
