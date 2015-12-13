@@ -208,7 +208,7 @@ void RegisterList::writeTextPacket(char *s) volatile{
 
 void RegisterList::readCV(char *s) volatile{
   byte bRead[4];
-  byte bValue;
+  int bValue;
   unsigned long c;
   int cv, callBack, callBackSub;
   
