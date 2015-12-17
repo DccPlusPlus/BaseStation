@@ -357,12 +357,12 @@ void setup(){
   bitSet(TCCR3B,WGM32);
   bitSet(TCCR3B,WGM33);
 
-  bitSet(TCCR1A,COM3B1);    // set Timer 3, OC3B (pin 2) to inverting toggle (actual direction is arbitrary)
-  bitSet(TCCR1A,COM3B0);
+  bitSet(TCCR3A,COM3B1);    // set Timer 3, OC3B (pin 2) to inverting toggle (actual direction is arbitrary)
+  bitSet(TCCR3A,COM3B0);
 
-  bitClear(TCCR1B,CS32);    // set Timer 3 prescale=1
-  bitClear(TCCR1B,CS31);
-  bitSet(TCCR1B,CS30);
+  bitClear(TCCR3B,CS32);    // set Timer 3 prescale=1
+  bitClear(TCCR3B,CS31);
+  bitSet(TCCR3B,CS30);
     
   OCR3A=DCC_ONE_BIT_TOTAL_DURATION_TIMER3;
   OCR3B=DCC_ONE_BIT_PULSE_DURATION_TIMER3;
@@ -458,6 +458,7 @@ ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER
 }
 
 #endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

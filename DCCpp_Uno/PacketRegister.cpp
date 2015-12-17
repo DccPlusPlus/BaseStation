@@ -211,7 +211,7 @@ void RegisterList::readCV(char *s) volatile{
   int bValue;
   int c,d,base;
   int cv, callBack, callBackSub;
-  
+
   if(sscanf(s,"%d %d %d",&cv,&callBack,&callBackSub)!=3)          // cv = 1-1024
     return;    
   cv--;                              // actual CV addresses are cv-1 (0-1023)
@@ -236,7 +236,7 @@ void RegisterList::readCV(char *s) volatile{
     loadPacket(0,resetPacket,2,3);          // NMRA recommends starting with 3 reset packets
     loadPacket(0,bRead,3,5);                // NMRA recommends 5 verfy packets
     loadPacket(0,resetPacket,2,1);          // forces code to wait until all repeats of bRead are completed (and decoder begins to respond)
-    
+
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
       c=(analogRead(CURRENT_MONITOR_PIN_PROG)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
       if(c>ACK_SAMPLE_THRESHOLD)
