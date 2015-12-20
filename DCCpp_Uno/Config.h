@@ -29,13 +29,14 @@ Part of DCC++ BASE STATION for the Arduino
 //  0 = Built-in Serial Port
 //  1 = Arduino Ethernet/SD Card Shield
 
-#define COMM_TYPE   0
+#define COMM_TYPE   1
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
 // DEFINE NAME OF ETHERNET LIBRARY TO INCLUDE (DIFFERENT SHIELDS MAY USE THEIR OWN LIBRARIES)
 
-#define ETHERNET_LIBRARY  <EthernetV2_0.h>        // https://github.com/Seeed-Studio/Ethernet_Shield_W5200
+//#define ETHERNET_LIBRARY  <EthernetV2_0.h>        // https://github.com/Seeed-Studio/Ethernet_Shield_W5200
+#define ETHERNET_LIBRARY  <Ethernet2.h>        // https://github.com/arduino-org/Arduino
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
