@@ -225,14 +225,7 @@ void setup(){
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
   #endif
 
-  #if COMM_TYPE == 1
-    Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
-    INTERFACE.begin();
-  #endif
-             
-  SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
-
-  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM  FIX THIS!!!!!!!!
+  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
@@ -243,6 +236,13 @@ void setup(){
   Serial.print(" ");
   Serial.print(__TIME__);
   Serial.print(">");
+
+  #if COMM_TYPE == 1
+    Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
+    INTERFACE.begin();
+  #endif
+             
+  SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
 
   Serial.print("<N");
   Serial.print(COMM_TYPE);

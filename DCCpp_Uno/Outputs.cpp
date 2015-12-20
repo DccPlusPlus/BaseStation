@@ -239,11 +239,13 @@ Output *Output::create(int id, int pin, int iFlag, int v){
   tt->data.iFlag=iFlag;
   tt->data.oStatus=0;
   
-  if(v==1)
+  if(v==1){
     tt->data.oStatus=bitRead(tt->data.iFlag,1)?bitRead(tt->data.iFlag,2):0;      // sets status to 0 (INACTIVE) is bit 1 of iFlag=0, otherwise set to value of bit 2 of iFlag  
     digitalWrite(tt->data.pin,tt->data.oStatus ^ bitRead(tt->data.iFlag,0));
     pinMode(tt->data.pin,OUTPUT);
     INTERFACE.print("<O>");
+  }
+  
   return(tt);
   
 }
