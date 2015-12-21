@@ -12,6 +12,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Accessories.h"
 #include "Sensor.h"
 #include "Outputs.h"
+#include "RGB.h"
 #include <EEPROM.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,7 @@ void EEStore::init(){
   Turnout::load();    // load turnout definitions
   Sensor::load();     // load sensor definitions
   Output::load();     // load output definitions
+  RGBLight::load();   // optionally load RGB Light color
   
 }
 

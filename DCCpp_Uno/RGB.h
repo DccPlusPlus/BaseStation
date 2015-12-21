@@ -16,8 +16,15 @@ Part of DCC++ BASE STATION for the Arduino
 #define GREEN_LED 45
 #define BLUE_LED 46
 
+struct RGBData{
+  byte R;
+  byte G;
+  byte B;
+};
+
 struct RGBLight{
-  static int rValue,gValue,bValue;
+  static struct RGBData data;
+  static int num;
   static void parse(char *c);
   static void activate(int, int, int, int=0);
   static void HSV2RGB(int&, int&, int&);

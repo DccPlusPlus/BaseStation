@@ -228,8 +228,6 @@ void setup(){
 
   EEStore::init();                                        // initialize and load Turnout, Sensor, and Output Pin definitions stored in EEPROM
 
-  RGBLight::init();                                       // initialize and load RGB Light definition stored in EEPROM  
-
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");

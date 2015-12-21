@@ -9,8 +9,10 @@ Part of DCC++ BASE STATION for the Arduino Uno
 
 #include "RGB.h"
 #include "DCCpp_Uno.h"
+#include <EEPROM.h>
+#include "EEStore.h"
+
 //#include "AutoTimer.h"
-//#include <EEPROM.h>
 
 //extern AutoTimer rgbBlinker;
 //extern AutoTimer soundEffectTimer;
@@ -30,7 +32,7 @@ void RGBLight::parse(char *c){
     activate(x,y,z,1);                // activate RGB and update static values
 
     if(s==1)
-      store();                        // write to EEPROM
+      EEPROM.put(num,data);           // write new color to EEPROM
       
 } // RGBLight::parse
 
@@ -43,41 +45,24 @@ void RGBLight::activate(int r, int g, int b, int u){
   analogWrite(BLUE_LED,b);
 
   if(u==1){         // if u=1, update static values
-    rValue=r;
-    gValue=g;
-    bValue=b;    
+    data.R=r;
+    data.G=g;
+    data.B=b;    
   }
 }
  
 ///////////////////////////////////////////////////////////////////////////////
 
-void RGBLight::store(){
-
-//  EEPROM.write(EE_R_VALUE,rValue);
-//  EEPROM.write(EE_G_VALUE,gValue);
-//  EEPROM.write(EE_B_VALUE,bValue);
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 void RGBLight::load(){
 
-//  rValue=EEPROM.read(EE_R_VALUE);
-//  gValue=EEPROM.read(EE_G_VALUE);
-//  bValue=EEPROM.read(EE_B_VALUE);
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void RGBLight::init(){
+  EEPROM.get(EEStore::pointer(),data);  
+  num=EEStore::pointer();
+  EEStore::advance(sizeof(data));
+  activate(data.R,data.G,data.B);
+      
   pinMode(RED_LED,OUTPUT);
   pinMode(BLUE_LED,OUTPUT);
   pinMode(GREEN_LED,OUTPUT);
-  
-  load();
-  activate(rValue,gValue,bValue);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,11 +70,11 @@ void RGBLight::init(){
 void RGBLight::show(){
 
   INTERFACE.print("<L");
-  INTERFACE.print(rValue);
+  INTERFACE.print(data.R);
   INTERFACE.print(" ");
-  INTERFACE.print(gValue);
+  INTERFACE.print(data.G);
   INTERFACE.print(" ");
-  INTERFACE.print(bValue);  
+  INTERFACE.print(data.B);  
   INTERFACE.print(">");
 }
 
@@ -142,7 +127,7 @@ void RGBLight::blink(int n){
 */
 ///////////////////////////////////////////////////////////////////////////////
 
-int RGBLight::rValue=255;
-int RGBLight::gValue=255;
-int RGBLight::bValue=255;
+struct RGBData RGBLight::data;
+int RGBLight::num;
+
 
