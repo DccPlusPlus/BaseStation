@@ -21,6 +21,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
+#include "RGB.h"
 
 extern int __heap_start, *__brkval;
 
@@ -198,6 +199,25 @@ void SerialCommand::parse(char *com){
  */
       Output::parse(com+1);
       break;
+
+
+/***** CONTROL AN LED-RGB LIGHT STRIP ****/    
+
+    case 'G':       // <G TYPE X Y Z STORE>
+/*
+ *   <G TYPE X Y Z STORE>:          sets LED-RGB Light Strip to color XYZ and optionally stores value to EEPROM 
+ *   
+ *   TYPE: the string "HSV" or "RGB"
+ *   X: if TYPE="RGB" the RED Value of the color (0-255), or if TYPE="HSV" the HUE of the color (0-359)
+ *   Y: if TYPE="RGB" the BLUE Value of the color (0-255), or if TYPE="HSV" the SATURATION of the color (0-100)
+ *   Z: if TYPE="RGB" the GREEN Value of the color (0-255), or if TYPE="HSV" the VALUE of the color (0-100)
+ *   STORE: if set to 1, new light settings are stored in EEPROM; any other value ignored
+ *   
+ *   returns: none
+ *   
+ */
+      RGBLight::parse(com+1);
+      break;      
       
 /***** CREATE/EDIT/REMOVE/SHOW A SENSOR  ****/    
 
@@ -390,6 +410,7 @@ void SerialCommand::parse(char *com){
       
       Turnout::show();
       Output::show();
+      RGBLight::show();
                         
       break;
 

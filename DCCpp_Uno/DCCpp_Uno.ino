@@ -173,10 +173,11 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "CurrentMonitor.h"
 #include "Sensor.h"
 #include "SerialCommand.h"
-#include "Accessories.h"
+//#include "Accessories.h"
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
+#include "RGB.h"
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
@@ -225,7 +226,9 @@ void setup(){
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
   #endif
 
-  EEStore::init();                                           // initialize and load Turnout and Sensor definitions stored in EEPROM
+  EEStore::init();                                        // initialize and load Turnout, Sensor, and Output Pin definitions stored in EEPROM
+
+  RGBLight::init();                                       // initialize and load RGB Light definition stored in EEPROM  
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
