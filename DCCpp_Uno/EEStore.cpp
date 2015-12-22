@@ -58,7 +58,8 @@ void EEStore::store(){
   reset();
   Turnout::store();
   Sensor::store();  
-  Output::store();  
+  Output::store();
+  RGBLight::store();  
   EEPROM.put(0,eeStore->data);    
 }
 

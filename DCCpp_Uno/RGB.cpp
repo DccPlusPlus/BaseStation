@@ -11,6 +11,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include "DCCpp_Uno.h"
 #include <EEPROM.h>
 #include "EEStore.h"
+#include "Comm.h"
 
 //#include "AutoTimer.h"
 
@@ -51,6 +52,15 @@ void RGBLight::activate(int r, int g, int b, int u){
   }
 }
  
+///////////////////////////////////////////////////////////////////////////////
+
+void RGBLight::store(){
+
+  EEPROM.put(EEStore::pointer(),data);  
+  num=EEStore::pointer();
+  EEStore::advance(sizeof(data));
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void RGBLight::load(){
