@@ -515,6 +515,7 @@ void SerialCommand::parse(char *com){
       INTERFACE.print("<f");
       INTERFACE.print((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval));
       INTERFACE.print(">");
+      RGBLight::blink(5);
       break;
 
 /***** LISTS BIT CONTENTS OF ALL INTERNAL DCC PACKET REGISTERS  ****/        

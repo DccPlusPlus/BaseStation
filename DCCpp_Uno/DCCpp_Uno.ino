@@ -176,6 +176,8 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
+#include "RGB.h"
+#include "AutoTimer.h"
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
@@ -206,7 +208,8 @@ void loop(){
     progMonitor.check();
   }
 
-  Sensor::check();    // check sensors for activate/de-activate
+  Sensor::check();          // check sensors for activate/de-activate
+  RGBLight::timer.check();  // check RGB Light AutoTimer if in blinking mode
   
 } // loop
 
@@ -225,6 +228,8 @@ void setup(){
   #endif
 
   EEStore::init();                                        // initialize and load Turnout, Sensor, and Output Pin definitions stored in EEPROM
+
+  AutoTimer::timerConfig();
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
