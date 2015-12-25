@@ -12,7 +12,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include <EEPROM.h>
 #include "EEStore.h"
 #include "Comm.h"
-#include "AutoTimer.h"
+#include "EggTimer.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -122,13 +122,13 @@ void RGBLight::blink(int n){
 
   if(n>0){
     activate(0,0,0,0);                      // turn RGB off, but don't update static values
-    timer.setEvent(20,-n);                // set timer for 200ms and call this routine again with parameter = -n
+    timer.setEvent(98,-n);                // set timer for 200ms and call this routine again with parameter = -n
   } else
   if(n<0){
     activate(data.R,data.G,data.B);       // turn RGB back on using known static values
     n++;                                  // increment count (noting n is negative)
     if(n<0)                               // if n has not yet reached zero
-      timer.setEvent(20,-n);              // set timer for another 200ms and call this routing again with parameter = -n (which should be a positive number)
+      timer.setEvent(98,-n);              // set timer for another 200ms and call this routing again with parameter = -n (which should be a positive number)
   }
 }
 
@@ -136,6 +136,6 @@ void RGBLight::blink(int n){
 
 struct RGBData RGBLight::data;
 int RGBLight::num;
-AutoTimer RGBLight::timer(RGBLight::blink);  
+EggTimer RGBLight::timer(RGBLight::blink);  
 
 

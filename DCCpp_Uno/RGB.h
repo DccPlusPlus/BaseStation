@@ -8,7 +8,7 @@ Part of DCC++ BASE STATION for the Arduino
 **********************************************************************/
 
 #include "Arduino.h"
-#include "AutoTimer.h"
+#include "EggTimer.h"
 
 #ifndef RGB_h
 #define RGB_h
@@ -26,7 +26,7 @@ struct RGBData{
 struct RGBLight{
   static struct RGBData data;
   static int num;
-  static AutoTimer timer;  
+  static EggTimer timer;  
   static void parse(char *c);
   static void activate(int, int, int, int=0);
   static void HSV2RGB(int&, int&, int&);

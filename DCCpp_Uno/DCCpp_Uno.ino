@@ -177,7 +177,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "Config.h"
 #include "Comm.h"
 #include "RGB.h"
-#include "AutoTimer.h"
+#include "EggTimer.h"
 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
@@ -209,7 +209,7 @@ void loop(){
   }
 
   Sensor::check();          // check sensors for activate/de-activate
-  RGBLight::timer.check();  // check RGB Light AutoTimer if in blinking mode
+  RGBLight::timer.check();  // check RGB Light EggTimer if in blinking mode
   
 } // loop
 
@@ -229,7 +229,7 @@ void setup(){
 
   EEStore::init();                                        // initialize and load Turnout, Sensor, and Output Pin definitions stored in EEPROM
 
-  AutoTimer::timerConfig();
+  EggTimer::timerConfig();                                // Configure the generalized Egg Timer
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
