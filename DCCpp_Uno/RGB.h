@@ -13,8 +13,8 @@ Part of DCC++ BASE STATION for the Arduino
 #ifndef RGB_h
 #define RGB_h
 
-#define RED_LED 44
-#define GREEN_LED 45
+#define RED_LED 45
+#define GREEN_LED 44
 #define BLUE_LED 46
 
 struct RGBData{
