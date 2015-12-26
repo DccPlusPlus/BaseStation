@@ -162,6 +162,12 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
   EEStore:          contains methods to store, update, and load various DCC settings and status
                     (e.g. the states of all defined turnouts) in the EEPROM for recall after power-up
 
+  RGB:              contains functionailty to control an RGB Light Strip connected to the PWM pins 44, 45, and 46
+                    on the Arduino Mega (OPTIONAL MODULE)
+
+  EggTimer:         contains methods to create, set, and reset one or more customizeable countdown timers
+                    that each automatically call a specified function upon reaching zero (OPTIONAL MODULE)
+
 DCC++ BASE STATION is configured through the Config.h file that contains all user-definable parameters                    
 
 **********************************************************************/
