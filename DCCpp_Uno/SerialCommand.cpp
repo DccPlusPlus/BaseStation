@@ -430,6 +430,8 @@ void SerialCommand::parse(char *com){
 */
       AutoPilot::enabled=0;               // disable autoPilot so it cannot be invoked again this session
       AutoPilot::activeStatus=0;          // set activeStatus to off
+      AutoPilot::halt();
+      
       break;  
 
 /***** STORE SETTINGS IN EEPROM  ****/    

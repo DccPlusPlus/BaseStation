@@ -27,6 +27,7 @@ struct AutoPilot{
   static void special(int s, int cab);
   static void load();
   static void store();
+  static void halt();
 }; // AutoPilot
 
 struct Route{

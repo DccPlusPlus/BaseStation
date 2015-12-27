@@ -247,6 +247,15 @@ void AutoPilot::process(int snum){
   
 ///////////////////////////////////////////////////////////////////////////////
 
+void AutoPilot::halt(){
+  char s[20];
+  sprintf(s,"t %d %d -1 1",cabs[selectedCab].reg,cabs[selectedCab].num);     // stop cab, set forward direction        
+  SerialCommand::parse(s);
+  status=70;        
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void AutoPilot::special(int s, int cab){
 
   switch(s){

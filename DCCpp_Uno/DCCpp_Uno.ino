@@ -219,7 +219,7 @@ void loop(){
   RGBLight::timer.check();              // check RGB Light EggTimer if in blinking mode
   Route::routeTimer.check();            // check Route Timer
   AutoPilot::autoPilotTimer.check();    // check AutoPilot Timer    
-  
+
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////
