@@ -516,7 +516,6 @@ void SerialCommand::parse(char *com){
       INTERFACE.print("<f");
       INTERFACE.print((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval));
       INTERFACE.print(">");
-      AutoPilot::process(99);
 
       break;
 
