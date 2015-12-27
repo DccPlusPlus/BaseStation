@@ -412,8 +412,25 @@ void SerialCommand::parse(char *com){
       Turnout::show();
       Output::show();
       RGBLight::show();
+
+      if(AutoPilot::activeStatus==1)        // if Arduino's internal AutoPilot routine is currently running
+        INTERFACE.print("<U>");              // let Controller know
+      else
+        AutoPilot::enabled=0;               // else disable AutoPilot so that it cannot be used this session  
                         
       break;
+
+/***** TURN OFF AUTOPILOT  ****/    
+
+    case 'u':     // <u>
+/*
+ *    turns off AutoPilot (assumed to be running) and disables future use this session
+ *    
+ *    returns: NONE
+*/
+      AutoPilot::enabled=0;               // disable autoPilot so it cannot be invoked again this session
+      AutoPilot::activeStatus=0;          // set activeStatus to off
+      break;  
 
 /***** STORE SETTINGS IN EEPROM  ****/    
 

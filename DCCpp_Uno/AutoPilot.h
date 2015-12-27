@@ -19,11 +19,14 @@ struct AutoPilot{
   static int enabled;
   static int status;
   static int activeStatus;
+  static int eeNum;
   static int program;
   static int selectedCab;
   static EggTimer autoPilotTimer;
   static void process(int snum);
   static void special(int s, int cab);
+  static void load();
+  static void store();
 }; // AutoPilot
 
 struct Route{

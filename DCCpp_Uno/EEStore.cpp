@@ -13,6 +13,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Sensor.h"
 #include "Outputs.h"
 #include "RGB.h"
+#include "AutoPilot.h"
 #include <EEPROM.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,6 +38,7 @@ void EEStore::init(){
   Sensor::load();     // load sensor definitions
   Output::load();     // load output definitions
   RGBLight::load();   // optionally load RGB Light color
+  AutoPilot::load();  // optionally load AutoPilot last saved cab
   
 }
 
@@ -60,6 +62,7 @@ void EEStore::store(){
   Sensor::store();  
   Output::store();
   RGBLight::store();  
+  AutoPilot::store();  
   EEPROM.put(0,eeStore->data);    
 }
 

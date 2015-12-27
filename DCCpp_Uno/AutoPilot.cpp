@@ -13,6 +13,7 @@ Part of DCC++ BASE STATION for the Arduino Uno
 #include "DCCpp_Uno.h"
 #include "RGB.h"
 #include "EggTimer.h"
+#include "EEStore.h"
 #include <EEPROM.h>
 
 // CREATE A LIST OF CABS TO USE FOR AUTOPILOT ROUTINE
@@ -87,7 +88,6 @@ void Route::activate(Route *r, int s, void (*eF)(int), int cB){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
 void AutoPilot::process(int snum){
             
   char s[20];
@@ -109,8 +109,7 @@ void AutoPilot::process(int snum){
           sprintf(s,"f %d %d",cabs[i].num,cabs[i].noLights);            // turn lights off all cabs
           SerialCommand::parse(s);
         }
-//        selectedCab=(EEPROM.read(EE_LAST_CAB)+Cab::nCabs-1)%Cab::nCabs;    // start with last selected cab minus one
-        selectedCab=0;
+        selectedCab=(selectedCab+Cab::nCabs-1)%Cab::nCabs;              // start with last selected cab minus one (will be a valid selectedCab even if random value in EEPROM)
         autoPilotTimer.setEvent(49,CYCLE_CAB_LIGHTS);  
       } else
       
@@ -153,7 +152,7 @@ void AutoPilot::process(int snum){
       sprintf(s,"f %d %d",cabs[selectedCab].num,cabs[selectedCab].noLights);                // turn lights off current cab
       SerialCommand::parse(s);
       selectedCab=(selectedCab+1)%Cab::nCabs;   // select next cab
-//      EEPROM.write(EE_LAST_CAB,selectedCab);
+      EEPROM.put(eeNum,selectedCab);
       sprintf(s,"t %d %d 0 1",cabs[selectedCab].reg,cabs[selectedCab].num);              // set direction to forward
       SerialCommand::parse(s);
       sprintf(s,"f %d %d",cabs[selectedCab].num,cabs[selectedCab].lights);  // turn cab light on
@@ -235,7 +234,7 @@ void AutoPilot::process(int snum){
           sprintf(s,"f %d %d",cabs[selectedCab].num,cabs[selectedCab].noLights);                // turn lights off current cab
           SerialCommand::parse(s);
           selectedCab=(selectedCab+random(1,Cab::nCabs))%Cab::nCabs;   // select random next cab, but do not repeat this one
-//          EEPROM.write(EE_LAST_CAB,selectedCab);
+          EEPROM.put(eeNum,selectedCab);
           status=20;
           autoPilotTimer.setEvent(49,SET_SPIRAL_TURNOUTS);
         }
@@ -276,11 +275,30 @@ void AutoPilot::special(int s, int cab){
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void AutoPilot::load(){
+
+  EEPROM.get(EEStore::pointer(),selectedCab);  
+  eeNum=EEStore::pointer();                         // address of EEPROM to store selectedCab
+  EEStore::advance(sizeof(selectedCab));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void AutoPilot::store(){
+
+  EEPROM.put(EEStore::pointer(),selectedCab);  
+  eeNum=EEStore::pointer();
+  EEStore::advance(sizeof(selectedCab));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int AutoPilot::enabled=1;
 int AutoPilot::activeStatus=0;
 int AutoPilot::status=0;
 int AutoPilot::program=0;
 int AutoPilot::selectedCab;
+int AutoPilot::eeNum;
 int Cab::nCabs=0;
 EggTimer AutoPilot::autoPilotTimer(AutoPilot::process);  
 EggTimer Route::routeTimer(Route::setTurnout);  
