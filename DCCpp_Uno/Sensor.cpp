@@ -59,6 +59,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 #include "Sensor.h"
 #include "EEStore.h"
 #include <EEPROM.h>
+#include "AutoPilot.h"
 #include "Comm.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,6 +75,7 @@ void Sensor::check(){
       INTERFACE.print("<Q");
       INTERFACE.print(tt->data.snum);
       INTERFACE.print(">");
+      AutoPilot::process(tt->data.snum);
     } else if(tt->active && tt->signal>0.9){
       tt->active=false;
       INTERFACE.print("<q");

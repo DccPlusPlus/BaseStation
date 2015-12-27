@@ -22,6 +22,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "EEStore.h"
 #include "Comm.h"
 #include "RGB.h"
+#include "AutoPilot.h"
 
 extern int __heap_start, *__brkval;
 
@@ -515,7 +516,8 @@ void SerialCommand::parse(char *com){
       INTERFACE.print("<f");
       INTERFACE.print((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval));
       INTERFACE.print(">");
-      RGBLight::blink(5);
+      AutoPilot::process(99);
+
       break;
 
 /***** LISTS BIT CONTENTS OF ALL INTERNAL DCC PACKET REGISTERS  ****/        
