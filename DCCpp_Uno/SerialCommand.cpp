@@ -442,6 +442,40 @@ void SerialCommand::parse(char *com){
 ///
 
 /***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
+
+    case 'D':       // <D>  
+/*
+ *    changes the clock speed of the chip and the pre-scaler for the timers so that you can visually see the DCC signals flickering with an LED
+ *    SERIAL COMMUNICAITON WILL BE INTERUPTED ONCE THIS COMMAND IS ISSUED - MUST RESET BOARD OR RE-OPEN SERIAL WINDOW TO RE-ESTABLISH COMMS
+ */
+
+    Serial.println("\nEntering Diagnostic Mode...");
+    delay(1000);
+    
+    bitClear(TCCR1B,CS12);    // set Timer 1 prescale=8 - SLOWS NORMAL SPEED BY FACTOR OF 8
+    bitSet(TCCR1B,CS11);
+    bitClear(TCCR1B,CS10);
+
+    #ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+
+      bitSet(TCCR0B,CS02);    // set Timer 0 prescale=256 - SLOWS NORMAL SPEED BY A FACTOR OF 4
+      bitClear(TCCR0B,CS01);
+      bitClear(TCCR0B,CS00);
+      
+    #else                     // Configuration for MEGA
+
+      bitClear(TCCR3B,CS32);    // set Timer 3 prescale=8 - SLOWS NORMAL SPEED BY A FACTOR OF 8
+      bitSet(TCCR3B,CS31);
+      bitClear(TCCR3B,CS30);
+
+    #endif
+
+    CLKPR=0x80;           // THIS SLOWS DOWN SYSYEM CLOCK BY FACTOR OF 256
+    CLKPR=0x08;           // BOARD MUST BE RESET TO RESUME NORMAL OPERATIONS
+
+    break;
+
+/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
       
     case 'M':       // <M REGISTER BYTE1 BYTE2 [BYTE3] [BYTE4] [BYTE5]>
 /*
