@@ -1,7 +1,7 @@
 /**********************************************************************
 
 SerialCommand.cpp
-COPYRIGHT (c) 2013-2015 Gregg E. Berman
+COPYRIGHT (c) 2013-2016 Gregg E. Berman
 
 Part of DCC++ BASE STATION for the Arduino
 
@@ -371,7 +371,9 @@ void SerialCommand::parse(char *com){
       INTERFACE.print(ARDUINO_TYPE);
       INTERFACE.print(" / ");
       INTERFACE.print(MOTOR_SHIELD_NAME);
-      INTERFACE.print(": BUILD ");
+      INTERFACE.print(": V-");
+      INTERFACE.print(VERSION);
+      INTERFACE.print(" / ");
       INTERFACE.print(__DATE__);
       INTERFACE.print(" ");
       INTERFACE.print(__TIME__);
@@ -437,11 +439,11 @@ void SerialCommand::parse(char *com){
       break;  
 
 ///          
-/// THE FOLLOWING COMMANDS ARE NOT NEEDED TO NORMAL OPERATIONS AND ARE ONLY USED FOR TESTING AND DEBUGGING PURPOSES
-/// PLEASE SEE SPECIFIC WANRINGS IN EACH COMMAND BELOW
+/// THE FOLLOWING COMMANDS ARE NOT NEEDED FOR NORMAL OPERATIONS AND ARE ONLY USED FOR TESTING AND DEBUGGING PURPOSES
+/// PLEASE SEE SPECIFIC WARNINGS IN EACH COMMAND BELOW
 ///
 
-/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
+/***** ENTER DIAGNOSTIC MODE  ****/    
 
     case 'D':       // <D>  
 /*

@@ -1,7 +1,7 @@
 /**********************************************************************
 
 Config.h
-COPYRIGHT (c) 2013-2015 Gregg E. Berman
+COPYRIGHT (c) 2013-2016 Gregg E. Berman
 
 Part of DCC++ BASE STATION for the Arduino
 
@@ -14,7 +14,7 @@ Part of DCC++ BASE STATION for the Arduino
 //  0 = ARDUINO MOTOR SHIELD          (MAX 18V/2A PER CHANNEL)
 //  1 = POLOLU MC33926 MOTOR SHIELD   (MAX 28V/3A PER CHANNEL)
 
-#define MOTOR_SHIELD_TYPE   0
+#define MOTOR_SHIELD_TYPE   1
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -24,19 +24,21 @@ Part of DCC++ BASE STATION for the Arduino
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-// DEFINE COMMUNICATIONS INTERFACE TYPE
+// DEFINE COMMUNICATIONS INTERFACE
 //
 //  0 = Built-in Serial Port
-//  1 = Arduino Ethernet/SD Card Shield
+//  1 = Arduino.cc Ethernet/SD-Card Shield
+//  2 = Arduino.org Ethernet/SD-Card Shield
+//  3 = Seeed Studio Ethernet/SD-Card Shield W5200
 
-#define COMM_TYPE   0
+#define COMM_INTERFACE   0
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-// DEFINE NAME OF ETHERNET LIBRARY TO INCLUDE (DIFFERENT SHIELDS MAY USE THEIR OWN LIBRARIES)
+// DEFINE STATIC IP ADDRESS *OR* COMMENT OUT TO USE DHCP
+//
 
-//#define ETHERNET_LIBRARY  <EthernetV2_0.h>        // https://github.com/Seeed-Studio/Ethernet_Shield_W5200
-#define ETHERNET_LIBRARY  <Ethernet2.h>        // https://github.com/arduino-org/Arduino
+//#define IP_ADDRESS { 192, 168, 1, 200 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 //

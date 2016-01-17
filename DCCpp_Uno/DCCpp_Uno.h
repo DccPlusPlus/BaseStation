@@ -1,7 +1,7 @@
 /**********************************************************************
 
 DCCpp_Uno.h
-COPYRIGHT (c) 2013-2015 Gregg E. Berman
+COPYRIGHT (c) 2013-2016 Gregg E. Berman
 
 Part of DCC++ BASE STATION for the Arduino
 
@@ -11,6 +11,12 @@ Part of DCC++ BASE STATION for the Arduino
 
 #ifndef DCCpp_Uno_h
 #define DCCpp_Uno_h
+
+/////////////////////////////////////////////////////////////////////////////////////
+// RELEASE VERSION
+/////////////////////////////////////////////////////////////////////////////////////
+
+#define VERSION "1.2.1+"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // AUTO-SELECT ARDUINO BOARD
@@ -27,7 +33,7 @@ Part of DCC++ BASE STATION for the Arduino
   #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno  - uses OC1B
   #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno  - uses OC0B
 
-  #if COMM_TYPE != 0                      // Serial was not selected
+  #if COMM_INTERFACE != 0                 // Serial was not selected
 
     #error CANNOT COMPILE - DCC++ FOR THE UNO CAN ONLY USE SERIAL COMMUNICATION - PLEASE SELECT THIS IN THE CONFIG FILE
 
@@ -86,18 +92,20 @@ Part of DCC++ BASE STATION for the Arduino
 // SELECT COMMUNICATION INTERACE
 /////////////////////////////////////////////////////////////////////////////////////
 
-#if COMM_TYPE == 0
+#if COMM_INTERFACE == 0
 
+  #define COMM_TYPE 0
   #define INTERFACE Serial
 
-#elif COMM_TYPE == 1
+#elif (COMM_INTERFACE==1) || (COMM_INTERFACE==2) || (COMM_INTERFACE==3)
 
+  #define COMM_TYPE 1
   #define INTERFACE eServer
   #define SDCARD_CS 4
   
 #else
 
-  #error CANNOT COMPILE - PLEASE SELECT A PROPER COMMUNICATIONS INTERFACE TYPE
+  #error CANNOT COMPILE - Please select a proper value for COMM_INTERFACE in CONFIG.H file
 
 #endif
 
