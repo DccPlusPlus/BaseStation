@@ -12,6 +12,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Accessories.h"
 #include "Sensor.h"
 #include "Outputs.h"
+#include "DccServer.h"
 #include <EEPROM.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +29,7 @@ void EEStore::init(){
     eeStore->data.nTurnouts=0;
     eeStore->data.nSensors=0;
     eeStore->data.nOutputs=0;
+    eeStore->data.serverID=0;    
     EEPROM.put(0,eeStore->data);    
   }
   
@@ -35,6 +37,7 @@ void EEStore::init(){
   Turnout::load();    // load turnout definitions
   Sensor::load();     // load sensor definitions
   Output::load();     // load output definitions
+  DccServer::load();  // load server definition
   
 }
 
@@ -46,6 +49,7 @@ void EEStore::clear(){
   eeStore->data.nTurnouts=0;
   eeStore->data.nSensors=0;
   eeStore->data.nOutputs=0;
+  eeStore->data.serverID=0;
   EEPROM.put(0,eeStore->data);    
   
 }
@@ -56,7 +60,8 @@ void EEStore::store(){
   reset();
   Turnout::store();
   Sensor::store();  
-  Output::store();  
+  Output::store();
+  DccServer::store();  
   EEPROM.put(0,eeStore->data);    
 }
 

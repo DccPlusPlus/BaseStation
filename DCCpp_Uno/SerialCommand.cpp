@@ -19,6 +19,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Accessories.h"
 #include "Sensor.h"
 #include "Outputs.h"
+#include "DccServer.h"
 #include "EEStore.h"
 #include "Comm.h"
 
@@ -199,6 +200,16 @@ void SerialCommand::parse(char *com){
       Output::parse(com+1);
       break;
       
+/***** CREATE/REMOVE/SHOW DCC++ SERVERS  ****/    
+
+    case 'J': 
+/*   
+ *   *** SEE DCCSERVER.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "J" COMMAND
+ *   USED TO CREATE/REMOVE/SHOW DCC++ SERVER DEFINITIONS
+ */
+      DccServer::parse(com+1);
+      break;
+
 /***** CREATE/EDIT/REMOVE/SHOW A SENSOR  ****/    
 
     case 'S': 
@@ -411,6 +422,8 @@ void SerialCommand::parse(char *com){
     INTERFACE.print(EEStore::eeStore->data.nSensors);
     INTERFACE.print(" ");
     INTERFACE.print(EEStore::eeStore->data.nOutputs);
+    INTERFACE.print(" ");
+    INTERFACE.print(EEStore::eeStore->data.serverID);
     INTERFACE.print(">");
     break;
     

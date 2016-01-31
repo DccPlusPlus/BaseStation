@@ -177,6 +177,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
+#include "DccServer.h"
 
 void showConfiguration();
 
@@ -184,7 +185,7 @@ void showConfiguration();
 
 #if COMM_TYPE == 1
   byte mac[] =  MAC_ADDRESS;                                // Create MAC address (to be used for DHCP when initializing server)
-  EthernetServer INTERFACE(ETHERNET_PORT);                  // Create and instance of an EnternetServer
+  EthernetServer INTERFACE(ETHERNET_PORT);                  // Create an instance of an EnternetServer
 #endif
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
@@ -210,6 +211,7 @@ void loop(){
   }
 
   Sensor::check();    // check sensors for activate/de-activate
+  DccServer::check(); // check status of DCC++ Servers
   
 } // loop
 
@@ -221,17 +223,18 @@ void setup(){
 
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
-
+  
   #ifdef SDCARD_CS
     pinMode(SDCARD_CS,OUTPUT);
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
   #endif
 
-  EEStore::init();                                          // initialize and load Turnout and Sensor definitions stored in EEPROM
+  EEStore::init();                                         // initialize and load Turnout, Sensor, Output, and Server definitions stored in EEPROM
+  DccServer::init();                                       // initialize DCC Master/Server Wire Interface 
 
-  pinMode(A5,INPUT);                                       // if pin A5 is grounded upon start-up, print system configuration and halt
-  digitalWrite(A5,HIGH);
-  if(!digitalRead(A5))
+  pinMode(CONFIG_PIN,INPUT);                               // if pin CONFIG_PIN is grounded upon start-up, print system configuration and halt
+  digitalWrite(CONFIG_PIN,HIGH);
+  if(!digitalRead(CONFIG_PIN))
     showConfiguration();
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
@@ -520,6 +523,9 @@ void showConfiguration(){
   Serial.print(EEStore::eeStore->data.nSensors);
   Serial.print("\n     OUTPUTS: ");
   Serial.print(EEStore::eeStore->data.nOutputs);
+
+  Serial.print("\n\nSERVER ID:    ");
+  Serial.print(EEStore::eeStore->data.serverID);
   
   Serial.print("\n\nINTERFACE:    ");
   #if COMM_TYPE == 0
