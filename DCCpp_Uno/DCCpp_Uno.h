@@ -30,8 +30,10 @@ Part of DCC++ BASE STATION for the Arduino
 
   #define ARDUINO_TYPE    "UNO"
 
-  #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno  - uses OC1B
+  #define DCC_SIGNAL_PIN_MAIN 10          // Arduino Uno  - uses OC1B
   #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno  - uses OC0B
+
+  #define BOOSTER_INPUT_PIN 2             // Arduino Uno - uses INT0
 
   #if COMM_INTERFACE != 0                 // Serial was not selected
 
@@ -46,6 +48,8 @@ Part of DCC++ BASE STATION for the Arduino
   #define DCC_SIGNAL_PIN_MAIN 12          // Arduino Mega - uses OC1B
   #define DCC_SIGNAL_PIN_PROG 2           // Arduino Mega - uses OC3B
 
+  #define BOOSTER_INPUT_PIN 2            // Arduino Mega - uses INT4
+  
 #else
 
   #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 1280/2560

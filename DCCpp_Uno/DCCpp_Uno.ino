@@ -270,7 +270,19 @@ void setup(){
     Serial.print(Ethernet.localIP());
     Serial.print(">");
   #endif
-  
+
+  LOGIC HERE FOR WHICH TO CHOOSE
+  timerConfigBase();
+  timerConfigBooster();
+
+} // setup
+
+///////////////////////////////////////////////////////////////////////////////
+// SETUP TIMERS FOR NORMAL BASE STATION
+///////////////////////////////////////////////////////////////////////////////
+
+void timerConfigBase(){
+    
   // CONFIGURE TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC1B INTERRUPT PINS
   
   // Direction Pin for Motor Shield Channel A - MAIN OPERATIONS TRACK
@@ -391,7 +403,42 @@ void setup(){
   
 #endif
 
-} // setup
+} // timerConfigBase
+
+///////////////////////////////////////////////////////////////////////////////
+// CONFIGURE PINS AND INTERRUPTS FOR BOOSTER STATION
+///////////////////////////////////////////////////////////////////////////////
+
+void timerConfigBooster(){
+    
+  // CONFIGURE INT0 (UNO) OR INT4 (MEGA) TO TRIGGER ON DCC_SIGNAL RISING (THEN FALLING) EDGES AND SET MOTOR SHIELD DIRECTION PINS ACCORDINGLY
+    
+  pinMode(DIRECTION_MOTOR_CHANNEL_PIN_A,OUTPUT);     // the interrupt routine will write directly to the Motor Channel Direction-A
+  pinMode(DIRECTION_MOTOR_CHANNEL_PIN_B,OUTPUT);     // the interrupt routine will write directly to the Motor Channel Direction-B
+
+  pinMode(BOOSTER_INPUT_PIN,INPUT);         // THIS ARDUINO BOOSTER INPUT PIN MUST BE CONNECTED TO THE MAIN_DCC_SIGNAL PIN FROM A SEPARATE MASTER BASE STATION
+  digitalWrite(BOOSTER_INPUT_PIN,LOW);
+
+  pinMode(SIGNAL_ENABLE_PIN_MAIN,OUTPUT);   // master enable for motor channel A
+  pinMode(SIGNAL_ENABLE_PIN_PROG,OUTPUT);   // master enable for motor channel B
+
+#ifdef ARDUINO_AVR_UNO        // Configuration for UNO
+
+  bitSet(EICRA,ISC00);    // set INT0 to generate interrupt on logical toggle
+  bitClear(EICRA,ISC01);
+
+  bitSet(EIMSK,INT0);     // enable INT0 interrupt vector
+  
+#else                         // Configuration for MEGA
+
+  bitSet(EICRB,ISC40);    // set INT4 to generate interrupt on logical toggle
+  bitClear(EICRB,ISC41);
+
+  bitSet(EIMSK,INT4);     // enable INT4 interrupt vector
+
+#endif
+
+} // timerConfigBooster
 
 ///////////////////////////////////////////////////////////////////////////////
 // DEFINE THE INTERRUPT LOGIC THAT GENERATES THE DCC SIGNAL
@@ -477,8 +524,30 @@ ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// DEFINE THE INTERRUPT LOGIC THAT GENERATES A BOOSTER SIGNAL
+///////////////////////////////////////////////////////////////////////////////
+
+#ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+
+ISR(INT0_vect){
+  digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_A,digitalRead(BOOSTER_INPUT_PIN));
+  digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_B,digitalRead(BOOSTER_INPUT_PIN));
+}
+
+#else      // Configuration for MEGA
+
+ISR(INT4_vect){
+  digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_A,digitalRead(BOOSTER_INPUT_PIN));
+  digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_B,digitalRead(BOOSTER_INPUT_PIN));
+}
+
+#endif
+
+
+///////////////////////////////////////////////////////////////////////////////
 // PRINT CONFIGURATION INFO TO SERIAL PORT REGARDLESS OF INTERFACE TYPE
 // - ACTIVATED ON STARTUP IF SHOW_CONFIG_PIN IS TIED HIGH 
+///////////////////////////////////////////////////////////////////////////////
 
 void showConfiguration(){
 
