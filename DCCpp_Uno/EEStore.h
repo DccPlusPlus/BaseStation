@@ -17,7 +17,6 @@ struct EEStoreData{
   int nTurnouts;
   int nSensors;  
   int nOutputs;
-  int serverID;
 };
 
 struct EEStore{

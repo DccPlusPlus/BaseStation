@@ -60,45 +60,14 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 #include "EEStore.h"
 #include <EEPROM.h>
 #include "Comm.h"
-#include "DccServer.h"
 
 ///////////////////////////////////////////////////////////////////////////////
   
 void Sensor::check(){    
   Sensor *tt;
-  DccServer *ss;
-
-  for(ss=DccServer::firstDccServer;ss!=NULL;ss=ss->nextDccServer){        // instruct servers to activate sensorQuery request
-    if(ss->active) {        //server is active
-      Wire.beginTransmission(ss->data.snum+7);
-      Wire.write("Q");
-      ss->readyForQuery=(Wire.endTransmission()==0);
-    } else {
-      ss->readyForQuery=false;
-    }
-  }
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    if(tt->data.i2c<1){                                                                     // local sensor
-      tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
-    } else {                                                                                // remote sensor
-      ss=DccServer::get(tt->data.i2c);         // get pointer to remote server 
-      if(ss!=NULL && ss->readyForQuery && tt->upLoaded){       // check that server is readyForQuery and this sensor has been uploaded
-        byte x[2];
-        Wire.beginTransmission(tt->data.i2c+7);
-        Wire.write("q");
-        Wire.write(tt->data.pin);           // snum on server equals pin
-        Wire.endTransmission();
-        Wire.requestFrom(tt->data.i2c+7,2);
-        x[0]=Wire.read();                  // read back pin number for verification
-        x[1]=Wire.read();                  // read active flag
-
-        if(x[0]==tt->data.pin && x[1]!=tt->active)    // pin verified, and new active state received
-          tt->signal=tt->active;                      // this will triggger a change in state below
-        else
-          tt->signal=!tt->active;                     // this will not trigger change of state (either because state is same, or invalid pin)
-      }
-    }
+    tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
     
     if(!tt->active && tt->signal<0.5){
       tt->active=true;
@@ -117,9 +86,8 @@ void Sensor::check(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Sensor *Sensor::create(int snum, int pin, int pullUp, int i2c, int v){
+Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   Sensor *tt;
-  DccServer *ss;
   
   if(firstSensor==NULL){
     firstSensor=(Sensor *)calloc(1,sizeof(Sensor));
@@ -140,22 +108,11 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int i2c, int v){
   
   tt->data.snum=snum;
   tt->data.pin=pin;
-  tt->data.i2c=i2c;
   tt->data.pullUp=(pullUp==0?LOW:HIGH);
   tt->active=false;
-  tt->upLoaded=false;
   tt->signal=1;
-
-  if(i2c<1){                    // local sensor
-    pinMode(pin,INPUT);         // set mode to input
-    digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
-  } else {                      // remote sensor
-    ss=DccServer::get(i2c);    
-    if(ss==NULL)                // if server not yet defined
-      DccServer::create(i2c,1); // define this server
-    if(ss!=NULL)                // if server is or was defined      
-      ss->upLoaded=false;       // set uploaded flag to false (will be uploaded next time servers are checked)
-  }
+  pinMode(pin,INPUT);         // set mode to input
+  digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
 
   if(v==1)
     INTERFACE.print("<O>");
@@ -168,7 +125,6 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int i2c, int v){
 Sensor* Sensor::get(int n){
   Sensor *tt;
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;tt=tt->nextSensor);
-  lastQueried=tt;
   return(tt); 
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -210,8 +166,6 @@ void Sensor::show(){
     INTERFACE.print(tt->data.pin);
     INTERFACE.print(" ");
     INTERFACE.print(tt->data.pullUp);
-    INTERFACE.print(" ");
-    INTERFACE.print(tt->data.i2c);
     INTERFACE.print(">");
   }
 }
@@ -236,18 +190,13 @@ void Sensor::status(){
 ///////////////////////////////////////////////////////////////////////////////
 
 void Sensor::parse(char *c){
-  int n,s,m,r;
+  int n,s,m;
   Sensor *t;
   
-  switch(sscanf(c,"%d %d %d %d",&n,&s,&m,&r)){
+  switch(sscanf(c,"%d %d %d",&n,&s,&m)){
     
-    case 4:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH) and i2c board number (0=local, 1-120=servers)
-      if(r>=0 && r<=120)
-        create(n,s,m,r,1);
-    break;
-
     case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
-      create(n,s,m,0,1);
+      create(n,s,m,1);
     break;
 
     case 1:                     // argument is a string with id number only
@@ -272,7 +221,7 @@ void Sensor::load(){
 
   for(int i=0;i<EEStore::eeStore->data.nSensors;i++){
     EEPROM.get(EEStore::pointer(),data);  
-    tt=create(data.snum,data.pin,data.pullUp,data.i2c);
+    tt=create(data.snum,data.pin,data.pullUp);
     EEStore::advance(sizeof(tt->data));
   }  
 }
@@ -295,45 +244,5 @@ void Sensor::store(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-boolean Sensor::upload(DccServer *ss){
-  Sensor *tt;
-  boolean okay;
-
-  okay=true;
-
-  for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){         // loop over all sensors
-    if(tt->data.i2c==ss->data.snum && (!tt->upLoaded || ss->reset)){     // matches remote server ID for this upload request, and this sensor not yet uploaded or seever was reset
-      Wire.beginTransmission(tt->data.i2c+7);
-      Wire.write("S");
-      Wire.write(tt->data.pin);   // set snum to pin number on server to ensure snum is only one byte (master will still refer to this with correct snum)
-      Wire.write(tt->data.pin);
-      Wire.write(tt->data.pullUp);
-      tt->upLoaded=(Wire.endTransmission()==0);      // set status based on success of upload
-      okay&=tt->upLoaded;                            // if fail, set okay to fail
-    }
-  }
-
-  return(okay);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void Sensor::sensorQuery(){
-  byte x[2];
-  
-  if(lastQueried!=NULL){
-    x[0]=lastQueried->data.snum;      // same as pin number of this server
-    x[1]=lastQueried->active;
-  } else {
-    x[0]=0;
-    x[1]=0;
-  }
-  
-  Wire.write(x,2);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 Sensor *Sensor::firstSensor=NULL;
-Sensor *Sensor::lastQueried=NULL;
 
