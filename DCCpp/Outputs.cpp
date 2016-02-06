@@ -73,7 +73,7 @@ the state of any outputs being monitored or controlled by a separate interface o
 
 #include "Outputs.h"
 #include "SerialCommand.h"
-#include "DCCpp_Uno.h"
+#include "DCCpp.h"
 #include "EEStore.h"
 #include <EEPROM.h>
 #include "Comm.h"

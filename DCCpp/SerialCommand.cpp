@@ -15,7 +15,7 @@ Part of DCC++ BASE STATION for the Arduino
 // See SerialCommand::parse() below for defined text commands.
 
 #include "SerialCommand.h"
-#include "DCCpp_Uno.h"
+#include "DCCpp.h"
 #include "Accessories.h"
 #include "Sensor.h"
 #include "Outputs.h"

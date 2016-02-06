@@ -91,7 +91,7 @@ methods for updating and queuing according to text commands sent by the user
 the main operations track and one that controls the programming track.
 
 For the main operations track, packets to store cab throttle settings are stored in
-registers numbered 1 through MAX_MAIN_REGISTERS (as defined in DCCpp_Uno.h).
+registers numbered 1 through MAX_MAIN_REGISTERS (as defined in DCCpp.h).
 It is generally considered good practice to continuously send throttle control packets
 to every cab so that if an engine should momentarily lose electrical connectivity with the tracks,
 it will very quickly receive another throttle control signal as soon as connectivity is
@@ -129,7 +129,7 @@ For the Mega, the OC1B output is produced directly on pin 12, so no jumper is ne
 Motor Shield's DIRECTION A input.  However, one small jumper wire is needed to connect the Mega's OC3B output (pin 2)
 to the Motor Shield's DIRECTION B input (pin 13).
 
-Other Motor Shields may require different sets of jumper or configurations (see Config.h and DCCpp_Uno.h for details).
+Other Motor Shields may require different sets of jumper or configurations (see Config.h and DCCpp.h for details).
 
 When configured as such, the CHANNEL A and CHANNEL B outputs of the Motor Shield may be
 connected directly to the tracks.  This software assumes CHANNEL A is connected
@@ -168,7 +168,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 
 // BEGIN BY INCLUDING THE HEADER FILES FOR EACH MODULE
  
-#include "DCCpp_Uno.h"
+#include "DCCpp.h"
 #include "PacketRegister.h"
 #include "CurrentMonitor.h"
 #include "Sensor.h"

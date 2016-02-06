@@ -1,6 +1,6 @@
 /**********************************************************************
 
-DCCpp_Uno.h
+DCCpp.h
 COPYRIGHT (c) 2013-2016 Gregg E. Berman
 
 Part of DCC++ BASE STATION for the Arduino
