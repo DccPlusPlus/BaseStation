@@ -24,15 +24,16 @@ for each sensor.  You may need to change these parameters through trial and erro
 To have this sketch monitor one or more Arduino pins for sensor triggers, first define/edit/delete
 sensor definitions using the following variation of the "S" command:
 
-  <S ID PIN PULLUP>:           creates a new sensor ID, with specified PIN and PULLUP
-                               if sensor ID already exists, it is updated with specificed PIN and PULLUP
+  <S ID PIN DIR PULLUP>:       creates a new sensor ID, with specified PIN, DIR and PULLUP
+                               if sensor ID already exists, it is updated with specificed PIN, DIR and PULLUP
                                returns: <O> if successful and <X> if unsuccessful (e.g. out of memory)
+                               DIR is 1 for output, 0 for input.
 
   <S ID>:                      deletes definition of sensor ID
                                returns: <O> if successful and <X> if unsuccessful (e.g. ID does not exist)
 
   <S>:                         lists all defined sensors
-                               returns: <Q ID PIN PULLUP> for each defined sensor or <X> if no sensors defined
+                               returns: <Q ID PIN DIR PULLUP> for each defined sensor or <X> if no sensors defined
   
 where
 
@@ -52,6 +53,9 @@ If a Sensor Pin is found to have transitioned from one state to another, one of 
 
 Depending on whether the physical sensor is acting as an "event-trigger" or a "detection-sensor," you may
 decide to ignore the <q ID> return and only react to <Q ID> triggers.
+
+To Write to a Sensor as an Output:
+  <S ID VAL> - where VAL is 1 for high or 0 for low.  This will be ignored if sensor is defined with DIR=0.
 
 **********************************************************************/
 
@@ -86,7 +90,12 @@ void Sensor::check(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
+Sensor *Sensor::create(int snum, int pin, int pullUp, int v) {
+  // support the prevous input-only definition format: ID PIN PULLUP
+  return(Sensor::create(snum, pin, 0, pullUp, v));
+}
+
+Sensor *Sensor::create(int snum, int pin, int dir, int pullUp, int v){
   Sensor *tt;
   
   if(firstSensor==NULL){
@@ -108,11 +117,16 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   
   tt->data.snum=snum;
   tt->data.pin=pin;
+  tt->data.dir = (dir == 1 ? true : false);
   tt->data.pullUp=(pullUp==0?LOW:HIGH);
   tt->active=false;
   tt->signal=1;
-  pinMode(pin,INPUT);         // set mode to input
-  digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
+  if (tt->data.dir) {
+    pinMode(pin, OUTPUT);
+  } else {
+    pinMode(pin,INPUT);         // set mode to input
+    digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
+  }
 
   if(v==1)
     INTERFACE.print("<O>");
@@ -165,6 +179,8 @@ void Sensor::show(){
     INTERFACE.print(" ");
     INTERFACE.print(tt->data.pin);
     INTERFACE.print(" ");
+    INTERFACE.print(tt->data.dir ? "1" : "0");
+    INTERFACE.print(" ");
     INTERFACE.print(tt->data.pullUp);
     INTERFACE.print(">");
   }
@@ -190,14 +206,21 @@ void Sensor::status(){
 ///////////////////////////////////////////////////////////////////////////////
 
 void Sensor::parse(char *c){
-  int n,s,m;
+  int n,s,m,d;
   Sensor *t;
   
-  switch(sscanf(c,"%d %d %d",&n,&s,&m)){
-    
+  switch(sscanf(c,"%d %d %d %d",&n,&s,&d,&m)){
+    case 4:
+      create(n, s, d, m, 1);    // argument is string with id number of sensor followed by a pin number, direction and pullUp indicator (O=LOW/1=HIGH)
+      break;
+
     case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
-      create(n,s,m,1);
+      create(n,s,d,1);
     break;
+
+    case 2:
+      write(n, s);              // argument is a string with id and value
+      break;
 
     case 1:                     // argument is a string with id number only
       remove(n);
@@ -207,9 +230,19 @@ void Sensor::parse(char *c){
       show();
     break;
 
-    case 2:                     // invalid number of arguments
+    default:                     // invalid number of arguments
       INTERFACE.print("<X>");
       break;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Sensor::write(int id, int val) {
+  if (val != 0 && val != 1) { return; } // sanity check
+  Sensor *s = Sensor::get(id);
+  if (s != NULL && s->data.dir == true) {
+    digitalWrite(s->data.pin, (byte)(val == 1 ? 1 : 0));
   }
 }
 
