@@ -68,7 +68,7 @@ void SerialCommand::process(){
         sprintf(commandString,"");
       else if(c=='>')               // end of new command
         parse(commandString);                    
-      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
+      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if commandString still has space, append character just read from network
         sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
       } // while
     }
@@ -477,7 +477,7 @@ void SerialCommand::parse(char *com){
 
     break;
 
-/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
+/***** WRITE A DCC PACKET TO ONE OF THE REGISTERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
       
     case 'M':       // <M REGISTER BYTE1 BYTE2 [BYTE3] [BYTE4] [BYTE5]>
 /*
@@ -496,7 +496,7 @@ void SerialCommand::parse(char *com){
       mRegs->writeTextPacket(com+1);
       break;
 
-/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
+/***** WRITE A DCC PACKET TO ONE OF THE REGISTERS DRIVING THE PROGRAMMING TRACK  ****/    
 
     case 'P':       // <P REGISTER BYTE1 BYTE2 [BYTE3] [BYTE4] [BYTE5]>
 /*
