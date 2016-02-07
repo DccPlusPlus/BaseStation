@@ -53,7 +53,7 @@ void SerialCommand::process(){
        sprintf(commandString,"");
      else if(c=='>')               // end of new command
        parse(commandString);                    
-     else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from serial line
+     else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if commandString still has space, append character just read from serial line
        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
     } // while
   
