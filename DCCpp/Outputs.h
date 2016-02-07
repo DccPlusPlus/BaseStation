@@ -22,6 +22,7 @@ struct OutputData {
 struct Output{
   static Output *firstOutput;
   int num;
+  boolean uploaded;
   struct OutputData data;
   Output *nextOutput;
   void activate(int s);

@@ -77,6 +77,7 @@ the state of any outputs being monitored or controlled by a separate interface o
 #include "EEStore.h"
 #include <EEPROM.h>
 #include "Comm.h"
+#include "DccServer.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +92,8 @@ void Output::activate(int s){
     INTERFACE.print(" 0>");
   else
     INTERFACE.print(" 1>"); 
+
+  uploaded=false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -212,6 +215,7 @@ void Output::store(){
   }
   
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 
 Output *Output::create(int id, int pin, int iFlag, int v){
@@ -238,6 +242,7 @@ Output *Output::create(int id, int pin, int iFlag, int v){
   tt->data.pin=pin;
   tt->data.iFlag=iFlag;
   tt->data.oStatus=0;
+  tt->uploaded=false;
   
   if(v==1){
     tt->data.oStatus=bitRead(tt->data.iFlag,1)?bitRead(tt->data.iFlag,2):0;      // sets status to 0 (INACTIVE) is bit 1 of iFlag=0, otherwise set to value of bit 2 of iFlag  

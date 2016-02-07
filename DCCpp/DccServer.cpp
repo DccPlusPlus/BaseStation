@@ -99,6 +99,7 @@ void DccServer::upload(Sensor *tt){
   Wire.write(tt->active?"Q":"q");
   Wire.write(highByte(tt->data.snum));
   Wire.write(lowByte(tt->data.snum));
+  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
   tt->uploaded=(Wire.endTransmission()==0);
   setServer(serverID);        // revert back to WIRE SERVER
   
@@ -106,22 +107,54 @@ void DccServer::upload(Sensor *tt){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DccServer::receiveWire(int nBytes){
+void DccServer::upload(Output *tt){
 
-  RemoteSensor *tt;
+  setMaster();                // convert to WIRE MASTER 
+  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
+  Wire.write(tt->data.oStatus==0?"y":"Y");          // relay status of local output to DCC++ MASTER
+  Wire.write(highByte(tt->data.id));
+  Wire.write(lowByte(tt->data.id));
+  Wire.write(serverID);
+  tt->uploaded=(Wire.endTransmission()==0);
+  setServer(serverID);        // revert back to WIRE SERVER
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void DccServer::upload(RemoteOutput *tt){
+  
+/*  
+  setMaster();                // convert to WIRE MASTER 
+  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
+  Wire.write(tt->data.oStatus==0?"y":"Y");          // relay status of local output to DCC++ MASTER
+  Wire.write(highByte(tt->data.id));
+  Wire.write(lowByte(tt->data.id));
+  Wire.write(serverID);
+  tt->uploaded=(Wire.endTransmission()==0);
+  setServer(serverID);        // revert back to WIRE SERVER
+  */
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void DccServer::receiveWire(int nBytes){
   
   char c;
-  byte i,j;
+  byte i,j,k;
   int w;
 
   c=Wire.read();
   i=Wire.read();
   j=Wire.read();
+  k=Wire.read();
   
   switch(c){
    
     case 'Q':                      // sensor activated
     case 'q':                      // sensor de-activated    
+      RemoteSensor *tt;
       w=word(i,j);      
       tt=RemoteSensor::get(w);     // get remoteSensor
       
@@ -139,7 +172,23 @@ void DccServer::receiveWire(int nBytes){
       INTERFACE.print(w);
       INTERFACE.print(">");
     break;
-    
+
+    case 'Y':                      // output activated
+    case 'y':                      // output de-activated    
+      RemoteOutput *ss;
+      w=word(i,j);      
+      ss=RemoteOutput::get(w);     // get remoteOutput
+
+      if(ss==NULL)                      // remoteOutput does not yet exist
+        ss=RemoteOutput::create(w,k);   // create with output ID and serverID
+      
+      ss->active=(c=='Y');       // set active status
+                                 
+      INTERFACE.print("<Y");
+      INTERFACE.print(w);
+      INTERFACE.print(ss->active?" 1>":" 0>");
+    break;
+       
   }
     
 }
@@ -187,7 +236,71 @@ void RemoteSensor::status(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
+RemoteOutput *RemoteOutput::create(int snum, int serverID){
+  RemoteOutput *tt;
+  
+  if(firstOutput==NULL){
+    firstOutput=(RemoteOutput *)calloc(1,sizeof(RemoteOutput));
+    tt=firstOutput;
+  } else if((tt=get(snum))==NULL){
+    tt=firstOutput;
+    while(tt->nextOutput!=NULL)
+      tt=tt->nextOutput;
+    tt->nextOutput=(RemoteOutput *)calloc(1,sizeof(RemoteOutput));
+    tt=tt->nextOutput;
+  }
+  
+  tt->snum=snum;
+  tt->serverID=serverID;
+  tt->uploaded=true;
+  return(tt);
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+RemoteOutput *RemoteOutput::get(int n){
+  RemoteOutput *tt;
+  for(tt=firstOutput;tt!=NULL && tt->snum!=n;tt=tt->nextOutput);
+  return(tt); 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void RemoteOutput::status(){
+  RemoteOutput *tt;
+    
+  for(tt=firstOutput;tt!=NULL;tt=tt->nextOutput){
+    INTERFACE.print(tt->active?"<Y":"<y");
+    INTERFACE.print(tt->snum);
+    INTERFACE.print(">");
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+  
+void RemoteOutput::check(){    
+
+  if(DccServer::serverID>0){                                   // this is a DCC++ SERVER - must upload LOCAL output definitions to DCC++ MASTER
+    
+    for(Output *tt=Output::firstOutput;tt!=NULL;tt=tt->nextOutput){
+      if(!tt->uploaded)                                   
+        DccServer::upload(tt);
+    } 
+  } else {                                                     // this is a DCC++ MASTER - must upload any REMOTE OUTPUT commands to DCC++ SERVER 
+
+    for(RemoteOutput *tt=RemoteOutput::firstOutput;tt!=NULL;tt=tt->nextOutput){
+      if(!tt->uploaded)                                   
+        DccServer::upload(tt);
+    }
+  }
+          
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 byte DccServer::serverID;
 RemoteSensor *RemoteSensor::firstSensor=NULL;
+RemoteOutput *RemoteOutput::firstOutput=NULL;
 
 

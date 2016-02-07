@@ -220,6 +220,14 @@ void SerialCommand::parse(char *com){
       RemoteSensor::status();
       break;
 
+/***** SHOW STATUS OF ALL OUTPUTS ****/
+
+    case 'Y':         // <Y>
+/*
+ *    returns: the status of each output ID in the form <Y ID> (active) or <y ID> (not active)
+ */
+      Output::show();
+      break;
 
 /***** CREATE/REMOVE/SHOW DCC++ SERVERS  ****/    
 

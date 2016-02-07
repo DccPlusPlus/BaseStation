@@ -211,6 +211,7 @@ void loop(){
   }
 
   Sensor::check();    // check sensors for activate/de-activate
+  RemoteOutput::check();     // check outputs for any new required uploads between DCC++ MASTER and DCC++ SERVER
   
 } // loop
 
