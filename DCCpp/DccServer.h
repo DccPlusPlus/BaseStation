@@ -12,6 +12,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 #include "Arduino.h"
 #include <Wire.h>
+#include "Sensor.h"
 
 struct DccServer{
   static byte serverID;
@@ -22,7 +23,18 @@ struct DccServer{
   static void setServer(int);
   static void setMaster();
   static void receiveWire(int);
+  static void upload(Sensor *);
 }; // DccServer
+
+struct RemoteSensor{
+  static RemoteSensor *firstSensor;
+  int snum;
+  boolean active;
+  RemoteSensor *nextSensor;
+  static RemoteSensor *create(int);
+  static RemoteSensor *get(int);  
+  static void status();
+}; // Sensor
 
 #endif
 

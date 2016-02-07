@@ -95,7 +95,7 @@ void Output::activate(int s){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Output* Output::get(int n){
+Output *Output::get(int n){
   Output *tt;
   for(tt=firstOutput;tt!=NULL && tt->data.id!=n;tt=tt->nextOutput);
   return(tt); 

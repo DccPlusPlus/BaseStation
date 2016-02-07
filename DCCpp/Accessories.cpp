@@ -85,7 +85,7 @@ void Turnout::activate(int s){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Turnout* Turnout::get(int n){
+Turnout *Turnout::get(int n){
   Turnout *tt;
   for(tt=firstTurnout;tt!=NULL && tt->data.id!=n;tt=tt->nextTurnout);
   return(tt); 

@@ -217,6 +217,7 @@ void SerialCommand::parse(char *com){
  *    returns: the status of each sensor ID in the form <Q ID> (active) or <q ID> (not active)
  */
       Sensor::status();
+      RemoteSensor::status();
       break;
 
 

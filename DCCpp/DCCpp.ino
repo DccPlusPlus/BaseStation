@@ -250,7 +250,7 @@ void setup(){
   Serial.print("<J");
   Serial.print(DccServer::serverID);
   Serial.print(">");
-  DccServer::setServer(DccServer::serverID);  
+  DccServer::setServer(DccServer::serverID);    // Start WIRE in SERVER MODE address loaded from EEPROM (0-119, where 0=DCC++ MASTER, else DCC++ BOOSTER) 
 
   #if COMM_TYPE == 1
     #ifdef IP_ADDRESS

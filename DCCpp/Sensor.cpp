@@ -60,6 +60,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 #include "EEStore.h"
 #include <EEPROM.h>
 #include "Comm.h"
+#include "DccServer.h"
 
 ///////////////////////////////////////////////////////////////////////////////
   
@@ -74,12 +75,18 @@ void Sensor::check(){
       INTERFACE.print("<Q");
       INTERFACE.print(tt->data.snum);
       INTERFACE.print(">");
+      tt->uploaded=false;
     } else if(tt->active && tt->signal>0.9){
       tt->active=false;
       INTERFACE.print("<q");
       INTERFACE.print(tt->data.snum);
       INTERFACE.print(">");
+      tt->uploaded=false;
     }
+
+    if(DccServer::serverID>0 && !tt->uploaded)     // this is not DCC++ MASTER, and just-changed (or just-created) sensor status has not been uploaded
+      DccServer::upload(tt);
+      
   } // loop over all sensors
     
 } // Sensor::check
@@ -110,6 +117,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   tt->data.pin=pin;
   tt->data.pullUp=(pullUp==0?LOW:HIGH);
   tt->active=false;
+  tt->uploaded=false;
   tt->signal=1;
   pinMode(pin,INPUT);         // set mode to input
   digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
@@ -122,11 +130,12 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Sensor* Sensor::get(int n){
+Sensor *Sensor::get(int n){
   Sensor *tt;
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;tt=tt->nextSensor);
   return(tt); 
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void Sensor::remove(int n){

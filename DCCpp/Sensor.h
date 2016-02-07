@@ -24,6 +24,7 @@ struct Sensor{
   static Sensor *firstSensor;
   SensorData data;
   boolean active;
+  boolean uploaded;
   float signal;
   Sensor *nextSensor;
   static void load();

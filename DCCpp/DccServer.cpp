@@ -92,16 +92,52 @@ void DccServer::setMaster(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void DccServer::upload(Sensor *tt){
+
+  setMaster();                // convert to WIRE MASTER 
+  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
+  Wire.write(tt->active?"Q":"q");
+  Wire.write(highByte(tt->data.snum));
+  Wire.write(lowByte(tt->data.snum));
+  tt->uploaded=(Wire.endTransmission()==0);
+  setServer(serverID);        // revert back to WIRE SERVER
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void DccServer::receiveWire(int nBytes){
 
-  int i,j,k;
+  RemoteSensor *tt;
+  
+  char c;
+  byte i,j;
+  int w;
 
-  switch(Wire.read()){
+  c=Wire.read();
+  i=Wire.read();
+  j=Wire.read();
+  
+  switch(c){
    
-    case 'S':                      // create a sensor      
-      i=Wire.read();
-      j=Wire.read();
-      k=Wire.read();       
+    case 'Q':                      // sensor activated
+    case 'q':                      // sensor de-activated    
+      w=word(i,j);      
+      tt=RemoteSensor::get(w);     // get remoteSensor
+      
+      if(tt!=NULL) {                // remoteSensor exists
+        tt->active=(c=='Q');       // set active status
+      } else {
+        tt=RemoteSensor::create(w);   // create remoteSensor
+        tt->active=(c=='Q');       // set active status
+        if(!tt->active)             // not active, and was just created
+          return;                 // do not report inactive sensors when just created
+      }
+                                 
+      INTERFACE.print("<");
+      INTERFACE.print(c);
+      INTERFACE.print(w);
+      INTERFACE.print(">");
     break;
     
   }
@@ -110,5 +146,48 @@ void DccServer::receiveWire(int nBytes){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-byte DccServer::serverID=1;
+RemoteSensor *RemoteSensor::create(int snum){
+  RemoteSensor *tt;
+  
+  if(firstSensor==NULL){
+    firstSensor=(RemoteSensor *)calloc(1,sizeof(RemoteSensor));
+    tt=firstSensor;
+  } else if((tt=get(snum))==NULL){
+    tt=firstSensor;
+    while(tt->nextSensor!=NULL)
+      tt=tt->nextSensor;
+    tt->nextSensor=(RemoteSensor *)calloc(1,sizeof(RemoteSensor));
+    tt=tt->nextSensor;
+  }
+  
+  tt->snum=snum;
+  return(tt);
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+RemoteSensor *RemoteSensor::get(int n){
+  RemoteSensor *tt;
+  for(tt=firstSensor;tt!=NULL && tt->snum!=n;tt=tt->nextSensor);
+  return(tt); 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void RemoteSensor::status(){
+  RemoteSensor *tt;
+    
+  for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
+    INTERFACE.print(tt->active?"<Q":"<q");
+    INTERFACE.print(tt->snum);
+    INTERFACE.print(">");
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+byte DccServer::serverID;
+RemoteSensor *RemoteSensor::firstSensor=NULL;
+
 
