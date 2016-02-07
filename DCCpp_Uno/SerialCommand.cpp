@@ -401,7 +401,7 @@ void SerialCommand::parse(char *com){
 /*
  *    stores settings for turnouts and sensors EEPROM
  *    
- *    returns: <e nTurnouts nSensors>
+ *    returns: <e nTurnouts nSensors nOutputs>
 */
      
     EEStore::store();
