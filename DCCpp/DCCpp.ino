@@ -177,6 +177,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
+#include "DccServer.h"
 
 void showConfiguration();
 
@@ -245,6 +246,11 @@ void setup(){
   Serial.print(" ");
   Serial.print(__TIME__);
   Serial.print(">");
+
+  Serial.print("<J");
+  Serial.print(DccServer::serverID);
+  Serial.print(">");
+  DccServer::setServer(DccServer::serverID);  
 
   #if COMM_TYPE == 1
     #ifdef IP_ADDRESS

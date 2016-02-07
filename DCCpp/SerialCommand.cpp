@@ -232,7 +232,7 @@ void SerialCommand::parse(char *com){
  *   
  *    returns: <J ID>
  *   
- *   ID: the WIRE address for this board (1-120)  
+ *   ID: the WIRE address for this board (0=DCC++ MASTER, 1-119=DCC++ BOOSTER)  
  * 
  */
 
