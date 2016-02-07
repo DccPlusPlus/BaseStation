@@ -156,15 +156,22 @@ void Output::show(int n){
 void Output::parse(char *c){
   int n,s,m;
   Output *t;
+  RemoteOutput *r;
   
   switch(sscanf(c,"%d %d %d",&n,&s,&m)){
     
     case 2:                     // argument is string with id number of output followed by zero (LOW) or one (HIGH)
       t=get(n);
-      if(t!=NULL)
+      if(t!=NULL){              // this matches local OUTPUT
         t->activate(s);
-      else
+      } else {
+        r=RemoteOutput::get(n);    // this matches remote OUTPUT
+        if(r!=NULL){
+          r->activate(s);
+        } else {                    // this does not match any OUTPUT
         INTERFACE.print("<X>");
+        }
+      }
       break;
 
     case 3:                     // argument is string with id number of output followed by a pin number and invert flag

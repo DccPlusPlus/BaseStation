@@ -29,13 +29,15 @@ struct RemoteOutput{
   static RemoteOutput *firstOutput;
   int snum;
   boolean active;
+  boolean activeDesired;
   byte serverID;
-  byte uploaded;
+  boolean uploaded;
   RemoteOutput *nextOutput;
   static RemoteOutput *create(int, int);
   static RemoteOutput *get(int);  
   static void status();
   static void check();
+  void activate(int);
 }; // RemoteOutput
 
 struct DccServer{

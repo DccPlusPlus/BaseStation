@@ -123,17 +123,15 @@ void DccServer::upload(Output *tt){
 ///////////////////////////////////////////////////////////////////////////////
 
 void DccServer::upload(RemoteOutput *tt){
-  
-/*  
-  setMaster();                // convert to WIRE MASTER 
-  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
-  Wire.write(tt->data.oStatus==0?"y":"Y");          // relay status of local output to DCC++ MASTER
-  Wire.write(highByte(tt->data.id));
-  Wire.write(lowByte(tt->data.id));
-  Wire.write(serverID);
+   
+  setMaster();                                      // convert to WIRE MASTER 
+  Wire.beginTransmission(tt->serverID+8);           // use serverID of DCC++ BOOSTER
+  Wire.write("Z");                                  // transmit remote OUTPUT command
+  Wire.write(highByte(tt->snum));
+  Wire.write(lowByte(tt->snum));
+  Wire.write(tt->activeDesired?1:0);               // send desired state, but don't set tt->active; wait for return instead
   tt->uploaded=(Wire.endTransmission()==0);
-  setServer(serverID);        // revert back to WIRE SERVER
-  */
+  setServer(serverID);                             // revert back to WIRE SERVER      
   
 }
 
@@ -187,6 +185,14 @@ void DccServer::receiveWire(int nBytes){
       INTERFACE.print("<Y");
       INTERFACE.print(w);
       INTERFACE.print(ss->active?" 1>":" 0>");
+    break;
+
+    case 'Z':                     // activate output
+      Output *rr;
+      w=word(i,j);
+      rr=Output::get(w);
+      if(rr!=NULL)
+        rr->activate(k);
     break;
        
   }
@@ -271,10 +277,17 @@ void RemoteOutput::status(){
   RemoteOutput *tt;
     
   for(tt=firstOutput;tt!=NULL;tt=tt->nextOutput){
-    INTERFACE.print(tt->active?"<Y":"<y");
+    INTERFACE.print("<Y");
     INTERFACE.print(tt->snum);
-    INTERFACE.print(">");
+    INTERFACE.print(tt->active?" 1>":" 0>");
   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void RemoteOutput::activate(int s){
+  activeDesired=(s>0);
+  uploaded=false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

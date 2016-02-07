@@ -227,6 +227,7 @@ void SerialCommand::parse(char *com){
  *    returns: the status of each output ID in the form <Y ID> (active) or <y ID> (not active)
  */
       Output::show();
+      RemoteOutput::status();
       break;
 
 /***** CREATE/REMOVE/SHOW DCC++ SERVERS  ****/    
