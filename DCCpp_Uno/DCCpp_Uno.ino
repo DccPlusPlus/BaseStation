@@ -95,18 +95,18 @@ registers numbered 1 through MAX_MAIN_REGISTERS (as defined in DCCpp_Uno.h).
 It is generally considered good practice to continuously send throttle control packets
 to every cab so that if an engine should momentarily lose electrical connectivity with the tracks,
 it will very quickly receive another throttle control signal as soon as connectivity is
-restored (such as when a trin passes over  rough portion of track or the frog of a turnout).
+restored (such as when a train passes over a rough portion of track or the frog of a turnout).
 
 DCC++ Base Station therefore sequentially loops through each main operations track packet regsiter
 that has been loaded with a throttle control setting for a given cab.  For each register, it
 transmits the appropriate DCC packet bits to the track, then moves onto the next register
 without any pausing to ensure continuous bi-polar power is being provided to the tracks.
 Updates to the throttle setting stored in any given packet register are done in a double-buffered
-fashion and the sequencer is pointed to that register immediately after being changes so that updated DCC bits
+fashion and the sequencer is pointed to that register immediately after being changed so that updated DCC bits
 can be transmitted to the appropriate cab without delay or any interruption in the bi-polar power signal.
 The cabs identified in each stored throttle setting should be unique across registers.  If two registers
 contain throttle setting for the same cab, the throttle in the engine will oscillate between the two,
-which is probably not a desireable outcome.
+which is probably not a desirable outcome.
 
 For both the main operations track and the programming track there is also a special packet register with id=0
 that is used to store all other DCC packets that do not require continious transmittal to the tracks.
@@ -234,7 +234,7 @@ void setup(){
   if(!digitalRead(A5))
     showConfiguration();
 
-  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
+  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so user can open Serial Monitor and check configuration 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
   Serial.print(MOTOR_SHIELD_NAME);
@@ -284,7 +284,7 @@ void setup(){
   pinMode(DIRECTION_MOTOR_CHANNEL_PIN_A,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
   digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_A,LOW);
 
-  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
+  pinMode(DCC_SIGNAL_PIN_MAIN, OUTPUT);      // THIS ARDUINO OUTPUT PIN MUST BE PHYSICALLY CONNECTED TO THE PIN FOR DIRECTION-A OF MOTOR CHANNEL-A
 
   bitSet(TCCR1A,WGM10);     // set Timer 1 to FAST PWM, with TOP=OCR1A
   bitSet(TCCR1A,WGM11);
@@ -401,11 +401,11 @@ void setup(){
 // DCC ZERO and DCC ONE bits.
 
 // These are hardware-driven interrupts that will be called automatically when triggered regardless of what
-// DCC++ BASE STATION was otherwise processing.  But once inside the interrupt, all other interrupt routines are temporarily diabled.
+// DCC++ BASE STATION was otherwise processing.  But once inside the interrupt, all other interrupt routines are temporarily disabled.
 // Since a short pulse only lasts for 116 microseconds, and there are TWO separate interrupts
 // (one for Main Track Registers and one for the Program Track Registers), the interrupt code must complete
-// in much less than 58 microsends, otherwise there would be no time for the rest of the program to run.  Worse, if the logic
-// of the interrupt code ever caused it to run longer than 58 microsends, an interrupt trigger would be missed, the OCNA and OCNB
+// in much less than 58 microseconds, otherwise there would be no time for the rest of the program to run.  Worse, if the logic
+// of the interrupt code ever caused it to run longer than 58 microseconds, an interrupt trigger would be missed, the OCNA and OCNB
 // registers would not be updated, and the net effect would be a DCC signal that keeps sending the same DCC bit repeatedly until the
 // interrupt code completes and can be called again.
 

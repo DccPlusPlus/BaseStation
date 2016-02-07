@@ -8,7 +8,7 @@ Part of DCC++ BASE STATION for the Arduino
 **********************************************************************/
 /**********************************************************************
 
-DCC++ BASE STATION supports Sensor inputs that can be connected to any Aruidno Pin 
+DCC++ BASE STATION supports Sensor inputs that can be connected to any Arduino Pin 
 not in use by this program.  Sensors can be of any type (infrared, magentic, mechanical...).
 The only requirement is that when "activated" the Sensor must force the specified Arduino
 Pin LOW (i.e. to ground), and when not activated, this Pin should remain HIGH (e.g. 5V),
@@ -25,7 +25,7 @@ To have this sketch monitor one or more Arduino pins for sensor triggers, first 
 sensor definitions using the following variation of the "S" command:
 
   <S ID PIN PULLUP>:           creates a new sensor ID, with specified PIN and PULLUP
-                               if sensor ID already exists, it is updated with specificed PIN and PULLUP
+                               if sensor ID already exists, it is updated with specified PIN and PULLUP
                                returns: <O> if successful and <X> if unsuccessful (e.g. out of memory)
 
   <S ID>:                      deletes definition of sensor ID

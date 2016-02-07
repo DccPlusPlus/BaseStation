@@ -9,7 +9,7 @@ Part of DCC++ BASE STATION for the Arduino
 /**********************************************************************
 
 DCC++ BASE STATION supports optional OUTPUT control of any unused Arduino Pins for custom purposes.
-Pins can be activited or de-activated.  The default is to set ACTIVE pins HIGH and INACTIVE pins LOW.
+Pins can be activated or de-activated.  The default is to set ACTIVE pins HIGH and INACTIVE pins LOW.
 However, this default behavior can be inverted for any pin in which case ACTIVE=LOW and INACTIVE=HIGH.
 
 Definitions and state (ACTIVE/INACTIVE) for pins are retained in EEPROM and restored on power-up.
@@ -47,8 +47,8 @@ where
                           1 = state of pin set on power-up, or when first created, to either ACTIVE of INACTIVE
                               depending on IFLAG, bit 2
 
-          IFLAG, bit 2:   0 = state of pin set to INACTIVE uponm power-up or when first created
-                          1 = state of pin set to ACTIVE uponm power-up or when first created 
+          IFLAG, bit 2:   0 = state of pin set to INACTIVE upon power-up or when first created
+                          1 = state of pin set to ACTIVE upon power-up or when first created 
                 
 Once all outputs have been properly defined, use the <E> command to store their definitions to EEPROM.
 If you later make edits/additions/deletions to the output definitions, you must invoke the <E> command if you want those
