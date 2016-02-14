@@ -210,7 +210,7 @@ void loop(){
     progMonitor.check();
   }
 
-  Sensor::check();    // check sensors for activate/de-activate
+  Sensor::check();           // check sensors for activate/de-activate
   RemoteOutput::check();     // check outputs for any new required uploads between DCC++ MASTER and DCC++ SERVER
   
 } // loop
@@ -233,8 +233,8 @@ void setup(){
 
   pinMode(A5,INPUT);                                       // if pin A5 is grounded upon start-up, print system configuration and halt
   digitalWrite(A5,HIGH);
-  if(!digitalRead(A5))
-    showConfiguration();
+//  if(!digitalRead(A5))
+//    showConfiguration();
 
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
@@ -251,7 +251,7 @@ void setup(){
   Serial.print("<J");
   Serial.print(DccServer::serverID);
   Serial.print(">");
-  DccServer::setServer(DccServer::serverID);    // Start WIRE in SERVER MODE address loaded from EEPROM (0-119, where 0=DCC++ MASTER, else DCC++ BOOSTER) 
+  DccServer::setServer(DccServer::serverID);    // Start WIRE in SERVER MODE address loaded from EEPROM (0-119, where 0=DCC++ MASTER, else DCC++ BOOSTER)
 
   #if COMM_TYPE == 1
     #ifdef IP_ADDRESS

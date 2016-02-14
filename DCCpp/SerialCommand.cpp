@@ -230,22 +230,33 @@ void SerialCommand::parse(char *com){
       RemoteOutput::status();
       break;
 
-/***** CREATE/REMOVE/SHOW DCC++ SERVERS  ****/    
+/***** SET/SHOW DCC++ SERVER ID  ****/    
+
+    case 'G':      // <G>
+/*   
+ *    broadcasts a status request to all DCC++ SERVERS
+ *    causing them to re-send the status of each of their
+ *    local outputs and sensors.
+ *   
+ */
+      DccServer::refresh();
+      break;
+
+/***** SET/SHOW DCC++ SERVER ID  ****/    
 
     case 'J':      // <J [ID]>
 /*   
- *   <J ID>:                   sets the WIRE address of this board to ID
+ *   <J ID>:                   sets the SERVER ID of this board to ID
  *   
  *    returns: <O> on success, <X> on failure
  *   
- *   <J>:                      shows the WIRE address for this board
+ *   <J>:                      shows the SERVER ID of this board
  *   
  *    returns: <J ID>
  *   
- *   ID: the WIRE address for this board (0=DCC++ MASTER, 1-119=DCC++ BOOSTER)  
+ *   ID: the SERVER ID of this board (0=DCC++ MASTER, 1-119=DCC++ BOOSTER)  
  * 
  */
-
       DccServer::parse(com+1);
       break;
 

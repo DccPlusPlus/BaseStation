@@ -45,6 +45,7 @@ struct DccServer{
   static void load();
   static void store();
   static void status();
+  static void refresh();
   static void parse(char *c);
   static void setServer(int);
   static void setMaster();

@@ -10,15 +10,15 @@ Part of DCC++ BASE STATION for the Arduino
 
 DCC++ BASE STATION supports the use of multiple Arduinos communicating
 via the Arduino's built-in TWI/I2C Interface, utilizing Arduino's WIRE library.
-Each Arduino requiures a unique WIRE address from 0 through 119.  This address
+Each Arduino requires a unique SERVER ID from 0 through 119.  This address
 is set interactively with the <J ID> command, and saved to EEPROM when
 the <E> command is issued.
 
 When multiple Arduinos are used, one acts as the DCC++ MASTER and all others
 are DCC++ BOOSTERS.
 
-* The DCC++ MASTER must have a WIRE address of 0.  
-* DCC++ BOOSTERS must have a unique WIRE address from 1 through 119 
+* The DCC++ MASTER must have a SERVER ID of 0.  
+* DCC++ BOOSTERS must have a unique SERVER ID from 1 through 119 
 
 **********************************************************************/
 
@@ -79,7 +79,7 @@ void DccServer::setServer(int id){
   
   Wire.end();
   Wire.onReceive(receiveWire);
-  Wire.begin(serverID+8);         // set as WIRE SERVER with ID+8 (yielding address between 8 and 127)
+  Wire.begin(serverID+1);         // set as WIRE SERVER with ID+1 (yielding address between 1 and 120)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ void DccServer::setMaster(){
 void DccServer::upload(Sensor *tt){
 
   setMaster();                // convert to WIRE MASTER 
-  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
+  Wire.beginTransmission(1);  // 1 is always the WIRE address of DCC++ MASTER (SERVER ID = 0)
   Wire.write(tt->active?"Q":"q");
   Wire.write(highByte(tt->data.snum));
   Wire.write(lowByte(tt->data.snum));
@@ -110,7 +110,7 @@ void DccServer::upload(Sensor *tt){
 void DccServer::upload(Output *tt){
 
   setMaster();                // convert to WIRE MASTER 
-  Wire.beginTransmission(8);  // 8 is always the WIRE address of DCC++ MASTER
+  Wire.beginTransmission(1);  // 1 is always the WIRE address of DCC++ MASTER (SERVER ID = 0)
   Wire.write(tt->data.oStatus==0?"y":"Y");          // relay status of local output to DCC++ MASTER
   Wire.write(highByte(tt->data.id));
   Wire.write(lowByte(tt->data.id));
@@ -125,7 +125,7 @@ void DccServer::upload(Output *tt){
 void DccServer::upload(RemoteOutput *tt){
    
   setMaster();                                      // convert to WIRE MASTER 
-  Wire.beginTransmission(tt->serverID+8);           // use serverID of DCC++ BOOSTER
+  Wire.beginTransmission(tt->serverID+1);           // use WIRE ADDRESS of DCC++ BOOSTER (= SERVER ID + 1)
   Wire.write("Z");                                  // transmit remote OUTPUT command
   Wire.write(highByte(tt->snum));
   Wire.write(lowByte(tt->snum));
@@ -135,6 +135,23 @@ void DccServer::upload(RemoteOutput *tt){
   
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void DccServer::refresh(){
+
+  if(serverID>0)                              // only applicable for the DCC++ MASTER
+    return;
+    
+  setMaster();                                // convert to WIRE MASTER 
+  Wire.beginTransmission(0);                  // use "general call" WIRE ADDRESS of zero (all SERVERS will respond)
+  Wire.write("G");                            // transmit status refresh command
+  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
+  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
+  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
+  Wire.endTransmission();
+  setServer(serverID);                        // revert back to WIRE SERVER      
+  
+}
 ///////////////////////////////////////////////////////////////////////////////
 
 void DccServer::receiveWire(int nBytes){
@@ -194,6 +211,18 @@ void DccServer::receiveWire(int nBytes){
       if(rr!=NULL)
         rr->activate(k);
     break;
+
+   case 'G':                     // status refresh - will cause a DCC++ SERVER to re-send all OUTPUTS and SENSORS to DCC++ MASTER
+
+    for(Output *tt=Output::firstOutput;tt!=NULL;tt=tt->nextOutput)      // set upload status for all local OUTPUTS to false
+      tt->uploaded=false;
+
+    for(Sensor *tt=Sensor::firstSensor;tt!=NULL;tt=tt->nextSensor)      // set upload status for all local SENSORS to false
+      tt->uploaded=false;   
+
+       Serial.println("\nHello");
+   
+   break;
        
   }
     
