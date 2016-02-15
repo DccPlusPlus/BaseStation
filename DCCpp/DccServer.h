@@ -11,9 +11,12 @@ Part of DCC++ BASE STATION for the Arduino
 #define DccServer_h
 
 #include "Arduino.h"
-#include <Wire.h>
 #include "Sensor.h"
 #include "Outputs.h"
+
+#define TWI_BUF_SIZE  4     // max number of bytes in TWI read/write buffer
+
+enum { READY, READING, WRITING, DATA_RECEIVED };
 
 struct RemoteSensor{
   static RemoteSensor *firstSensor;
@@ -42,6 +45,9 @@ struct RemoteOutput{
 
 struct DccServer{
   static byte serverID;
+  volatile static byte data[TWI_BUF_SIZE];
+  volatile static byte iData;
+  volatile static byte state;
   static void load();
   static void store();
   static void status();
@@ -49,10 +55,11 @@ struct DccServer{
   static void parse(char *c);
   static void setServer(int);
   static void setMaster();
-  static void receiveWire(int);
+  static void check();
   static void upload(Sensor *);
   static void upload(Output *);
   static void upload(RemoteOutput *);
+  static void init();
 }; // DccServer
 
 

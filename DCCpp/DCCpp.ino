@@ -212,6 +212,7 @@ void loop(){
 
   Sensor::check();           // check sensors for activate/de-activate
   RemoteOutput::check();     // check outputs for any new required uploads between DCC++ MASTER and DCC++ SERVER
+  DccServer::check();
   
 } // loop
 
@@ -251,7 +252,7 @@ void setup(){
   Serial.print("<J");
   Serial.print(DccServer::serverID);
   Serial.print(">");
-  DccServer::setServer(DccServer::serverID);    // Start WIRE in SERVER MODE address loaded from EEPROM (0-119, where 0=DCC++ MASTER, else DCC++ BOOSTER)
+//  DccServer::setServer(DccServer::serverID);    // Start WIRE in SERVER MODE address loaded from EEPROM (0-119, where 0=DCC++ MASTER, else DCC++ BOOSTER)
 
   #if COMM_TYPE == 1
     #ifdef IP_ADDRESS
@@ -274,6 +275,8 @@ void setup(){
     Serial.print(Ethernet.localIP());
     Serial.print(">");
   #endif
+
+  DccServer::init();          // set up DCC++ Server
   
   // CONFIGURE TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC1B INTERRUPT PINS
   
