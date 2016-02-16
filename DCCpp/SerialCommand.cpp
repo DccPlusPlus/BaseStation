@@ -230,7 +230,7 @@ void SerialCommand::parse(char *com){
       RemoteOutput::status();
       break;
 
-/***** SET/SHOW DCC++ SERVER ID  ****/    
+/***** REFRESH DCC++ SERVER DATA  ****/    
 
     case 'G':      // <G>
 /*   

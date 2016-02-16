@@ -85,7 +85,7 @@ void Sensor::check(){
     }
 
     if(DccServer::serverID>0 && !tt->uploaded)     // this is not DCC++ MASTER, and just-changed (or just-created) sensor status has not been uploaded
-      DccServer::upload(tt);
+      DccServer::twiWrite(tt->uploaded,0,tt->active?'Q':'q',highByte(tt->data.snum),lowByte(tt->data.snum),0);
       
   } // loop over all sensors
     

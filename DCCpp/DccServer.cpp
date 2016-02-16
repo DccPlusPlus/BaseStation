@@ -46,7 +46,8 @@ void DccServer::parse(char *c){
     case 1:                      // argument is serverID (0=DCC++ MASTER, 1-119=DCC++ BOOSTER)
       if(n>=0 && n<=119){
         INTERFACE.print("<O>");
-        setServer(n);
+        serverID=n;
+        init();
       } else {
         INTERFACE.print("<X>");
       }
@@ -74,6 +75,9 @@ void DccServer::init(){
   
   TWAR=(serverID+1) << 1;        // set WIRE ADDRESS = SERVER ID + 1
 
+  if(serverID>0)                 // this is a DCC++ SERVER
+    bitSet(TWAR,TWGCE);           // enable recognition of general call address (0x00)
+
   TWCR=(1<<TWEA) | (1<<TWEN) | (1<<TWIE);   // start SLAVE RECEIVER mode
   
 }
@@ -92,67 +96,53 @@ void DccServer::store(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DccServer::setServer(int id){
+//void DccServer::setServer(int id){
 
-  serverID=id;
+//  serverID=id;
   
 //  Wire.end();
 //  Wire.onReceive(receiveWire);
 //  Wire.begin(serverID+1);         // set as WIRE SERVER with ID+1 (yielding address between 1 and 120)
-}
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DccServer::setMaster(){
+//void DccServer::setMaster(){
 
 //  Wire.end();
 //  Wire.begin();                   // set as WIRE MASTER
-}
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DccServer::upload(Sensor *tt){
+// void DccServer::upload(Sensor *tt){
 
-  setMaster();                // convert to WIRE MASTER 
+//  setMaster();                // convert to WIRE MASTER 
 //  Wire.beginTransmission(1);  // 1 is always the WIRE address of DCC++ MASTER (SERVER ID = 0)
 //  Wire.write(tt->active?"Q":"q");
 //  Wire.write(highByte(tt->data.snum));
 //  Wire.write(lowByte(tt->data.snum));
 //  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
 //  tt->uploaded=(Wire.endTransmission()==0);
-  setServer(serverID);        // revert back to WIRE SERVER
+//  setServer(serverID);        // revert back to WIRE SERVER
   
-}
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DccServer::upload(Output *tt){
+//void DccServer::upload(Output *tt){
 
-  setMaster();                // convert to WIRE MASTER 
+//  setMaster();                // convert to WIRE MASTER 
 //  Wire.beginTransmission(1);  // 1 is always the WIRE address of DCC++ MASTER (SERVER ID = 0)
 //  Wire.write(tt->data.oStatus==0?"y":"Y");          // relay status of local output to DCC++ MASTER
 //  Wire.write(highByte(tt->data.id));
 //  Wire.write(lowByte(tt->data.id));
 //  Wire.write(serverID);
 //  tt->uploaded=(Wire.endTransmission()==0);
-  setServer(serverID);        // revert back to WIRE SERVER
-  
-}
+//  setServer(serverID);        // revert back to WIRE SERVER
 
-///////////////////////////////////////////////////////////////////////////////
-
-void DccServer::upload(RemoteOutput *tt){
-   
-  setMaster();                                      // convert to WIRE MASTER 
-//  Wire.beginTransmission(tt->serverID+1);           // use WIRE ADDRESS of DCC++ BOOSTER (= SERVER ID + 1)
-//  Wire.write("Z");                                  // transmit remote OUTPUT command
-//  Wire.write(highByte(tt->snum));
-//  Wire.write(lowByte(tt->snum));
-//  Wire.write(tt->activeDesired?1:0);               // send desired state, but don't set tt->active; wait for return instead
-//  tt->uploaded=(Wire.endTransmission()==0);
-  setServer(serverID);                             // revert back to WIRE SERVER      
   
-}
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -160,45 +150,75 @@ void DccServer::refresh(){
 
   if(serverID>0)                              // only applicable for the DCC++ MASTER
     return;
-    
-  setMaster();                                // convert to WIRE MASTER 
-//  Wire.beginTransmission(0);                  // use "general call" WIRE ADDRESS of zero (all SERVERS will respond)
-//  Wire.write("G");                            // transmit status refresh command
-//  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
-//  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
-//  Wire.write(0);                              // dummy byte -- must always have 4 bytes so all transmissions look alike (needed for proper WIRE arbitration)
-//  Wire.endTransmission();
-  setServer(serverID);                        // revert back to WIRE SERVER      
-  
+
+  twiWrite(rUploaded,-1,'G',0,0,0);    
+      
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+void DccServer::twiWrite(boolean &t, byte s, byte b0, byte b1, byte b2, byte b3){
+
+  if(state!=READY)      // do not proceed if TWI is already doing something else
+    return;
+
+  TWCR=(1<<TWINT);      // disable TWI
+  
+  state=WRITING;        // change state to WRITING
+
+  wData[0]=b0;          // create writing data buffer         
+  wData[1]=b1;
+  wData[2]=b2;
+  wData[3]=b3;
+
+  wDataIdx=0;                    
+
+  wAddress=(s+1) << 1;    // create SLA+W (where WIRE ADDRESS = SERVER ID + 1)
+
+  uploaded=&t;             // save pointer to the requested boolean "uploaded" flag (NULL=not needed);
+
+  TWCR=(1<<TWINT) | (1<<TWSTA) | (1<<TWEN) | (1<<TWIE);   // send TWI START
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void DccServer::check(){
 
-  if(state!=DATA_RECEIVED)        // check if data has been received
-    return;
-    
+  switch(state){
+    case DATA_RECEIVED:       // break from this switch and continue with next switch
+    break;
+
+    case DATA_SEND_SUCCESS:   // set uploaded to true, if pointer not NULL, then drop through to next case
+      if(uploaded!=NULL)
+        *uploaded=true;
+    case DATA_SEND_FAIL:      // reset TWI, then drop through to next case
+      state=READY;
+      TWCR=(1<<TWEA) | (1<<TWEN) | (1<<TWIE);   // re-start SLAVE RECEIVER mode
+    default:
+      return;
+  }
+  
   int w;
   
-  switch(data[0]){
+  switch(rData[0]){
    
     case 'Q':                      // sensor activated
     case 'q':                      // sensor de-activated    
       RemoteSensor *tt;
-      w=word(data[1],data[2]);      
+      w=word(rData[1],rData[2]);      
       tt=RemoteSensor::get(w);     // get remoteSensor
       
       if(tt!=NULL) {                // remoteSensor exists
-        tt->active=(data[0]=='Q');       // set active status
+        tt->active=(rData[0]=='Q');       // set active status
       } else {
         tt=RemoteSensor::create(w);   // create remoteSensor
-        tt->active=(data[0]=='Q');       // set active status
+        tt->active=(rData[0]=='Q');       // set active status
         if(!tt->active)             // not active, and was just created
           break;                 // do not report inactive sensors when just created
       }
                                  
       INTERFACE.print("<");
-      INTERFACE.print(char(data[0]));
+      INTERFACE.print(char(rData[0]));
       INTERFACE.print(w);
       INTERFACE.print(">");
     break;
@@ -206,13 +226,13 @@ void DccServer::check(){
     case 'Y':                      // output activated
     case 'y':                      // output de-activated    
       RemoteOutput *ss;
-      w=word(data[1],data[2]);      
+      w=word(rData[1],rData[2]);      
       ss=RemoteOutput::get(w);     // get remoteOutput
 
       if(ss==NULL)                            // remoteOutput does not yet exist
-        ss=RemoteOutput::create(w,data[3]);   // create with output ID and serverID
+        ss=RemoteOutput::create(w,rData[3]);   // create with output ID and serverID
       
-      ss->active=(data[0]=='Y');       // set active status
+      ss->active=(rData[0]=='Y');       // set active status
                                  
       INTERFACE.print("<Y");
       INTERFACE.print(w);
@@ -221,10 +241,10 @@ void DccServer::check(){
 
     case 'Z':                     // activate output requested
       Output *rr;
-      w=word(data[1],data[2]);
+      w=word(rData[1],rData[2]);
       rr=Output::get(w);
       if(rr!=NULL)
-        rr->activate(data[3]);
+        rr->activate(rData[3]);
     break;
 
    case 'G':                     // status refresh requested - will cause a DCC++ SERVER to re-send all OUTPUTS and SENSORS to DCC++ MASTER
@@ -343,13 +363,13 @@ void RemoteOutput::check(){
     
     for(Output *tt=Output::firstOutput;tt!=NULL;tt=tt->nextOutput){
       if(!tt->uploaded)                                   
-        DccServer::upload(tt);
+        DccServer::twiWrite(tt->uploaded,0,tt->data.oStatus==0?'y':'Y',highByte(tt->data.id),lowByte(tt->data.id),DccServer::serverID);
     } 
   } else {                                                     // this is a DCC++ MASTER - must upload any REMOTE OUTPUT commands to DCC++ SERVER 
 
     for(RemoteOutput *tt=RemoteOutput::firstOutput;tt!=NULL;tt=tt->nextOutput){
-      if(!tt->uploaded)                                   
-        DccServer::upload(tt);
+      if(!tt->uploaded)
+        DccServer::twiWrite(tt->uploaded,tt->serverID,'Z',highByte(tt->snum),lowByte(tt->snum),tt->activeDesired?1:0);
     }
   }
           
@@ -358,53 +378,81 @@ void RemoteOutput::check(){
 ///////////////////////////////////////////////////////////////////////////////
 
 byte DccServer::serverID;
-volatile byte DccServer::iData;
-volatile byte DccServer::data[TWI_BUF_SIZE];
+volatile byte DccServer::rDataIdx;
+volatile byte DccServer::rData[TWI_BUF_SIZE];
+volatile byte DccServer::wDataIdx;
+volatile byte DccServer::wData[TWI_BUF_SIZE];
 volatile byte DccServer::state;
+boolean *DccServer::uploaded;
+boolean DccServer::rUploaded;
+volatile byte DccServer::wAddress;
 RemoteSensor *RemoteSensor::firstSensor=NULL;
 RemoteOutput *RemoteOutput::firstOutput=NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 ISR(TWI_vect){
+  
   switch(TWSR){
 
-    case 0x08:        // MASTER TRANSMITTER
-      Serial.println(TWSR,HEX);
-      TWDR=1<<1;
+    case 0x08:        // START transmitted
+      TWDR=DccServer::wAddress;      // load SLA+W
       TWCR=(1<<TWINT) | (1<<TWEN) | (1<<TWIE);   // send SLA+W
     break;
 
-    case 0x18:
-      Serial.println("::18::");
+    case 0x18:       // SLA+W transmitted and acknowledged 
+    case 0x28:       // data byte has been transmitted and acknowledged
+      if(DccServer::wDataIdx<TWI_BUF_SIZE){                          // more data to transmit
+        TWDR=DccServer::wData[DccServer::wDataIdx++];                  // load next byte
+        TWCR=(1<<TWINT) | (1<<TWEN) | (1<<TWIE);                       // transmit byte
+      } else {                                                       // no more data to transmit
+        DccServer::state=DATA_SEND_SUCCESS;
+        TWCR=(1<<TWINT) | (1<<TWSTO) | (1<<TWEN) | (1<<TWIE);        // transmit STOP        
+      }
     break;
 
-          
+    case 0x20:       // SLA+W transmitted and not acknowledged 
+    case 0x30:       // data byte has been transmitted and not acknowledged
+      DccServer::state=DATA_SEND_FAIL;
+      TWCR=(1<<TWINT) | (1<<TWSTO) | (1<<TWEN) | (1<<TWIE);        // transmit STOP        
+    break;
+
+         
     case 0x60:        // received and acknowledged own SLA+W
-    case 0x70:        // received and acknowledged general call    
+    case 0x70:        // received and acknowledged general call
       DccServer::state=READING;
-      DccServer::iData=0;    
+      DccServer::rDataIdx=0;    
       TWCR=(1<<TWINT) | (1<<TWEA) | (1<<TWEN) | (1<<TWIE);     // set up to receive and acknowledge first byte
       break;
 
     case 0x80:       // received and acknowledged a byte as Slave Receiver at SLA+W
     case 0x90:       // received and acknowledged a byte as Slave Receiver ar general call address    
-      DccServer::data[DccServer::iData++]=TWDR;
-      
-      if(DccServer::iData<TWI_BUF_SIZE)
+      DccServer::rData[DccServer::rDataIdx++]=TWDR;      
+      if(DccServer::rDataIdx<TWI_BUF_SIZE)
         TWCR=(1<<TWINT) | (1<<TWEA) | (1<<TWEN) | (1<<TWIE);   // set up to receive and acknowledge next byte
       else
-        TWCR=(1<<TWINT) | (0<<TWEA) | (1<<TWEN) | (1<<TWIE);   // set up to continue receiving data but do not acknowledge any additional bytes
+        TWCR=(1<<TWINT) | (1<<TWEN) | (1<<TWIE);   // switch to non-addressable Slave mode
     break;
 
     case 0x88:       // received but did not acknowledge a byte as Slave Receiver at SLA+W (buffer full)
     case 0x98:       // received but did not acknowledge a byte as Slave Receiver ar general call address (buffer full)
     case 0xA0:       // STOP received while in Slave Receiver mode    
-      TWCR=(1<<TWINT);    // switch to non-addressable Slave mode (data byte must be processed before re-starting Slave Receiver mode)
       DccServer::state=DATA_RECEIVED;
+      TWCR=(1<<TWINT);    // disable TWI circuit and TWI interrupt (data byte must be processed before re-starting Slave Receiver mode)
     break;
 
+    case 0x38:      // arbitration lost while trying to send data
+      DccServer::state=DATA_SEND_FAIL;
+      TWCR=(1<<TWINT) | (1<<TWEN) | (1<<TWIE);        // recover (do not send stop bit since another master is still transmitting)
+      break;        
+    
+    case 0x00:      // bus error (loose TWI wire causes SLA jitter, etc.)
+      DccServer::state=DATA_SEND_FAIL;
+      TWCR=(1<<TWINT) | (1<<TWSTO) | (1<<TWEN) | (1<<TWIE);        // recover (in this special mode, STOP is actually not transmitted, even though it is set)
+      break;        
+
     default:
+      Serial.print("TWI HALT: "); 
       Serial.println(TWSR,HEX);
       TWCR=(1<<TWINT);    // switch to non-addressable Slave mode (data byte must be processed before re-starting Slave Receiver mode)
     break;

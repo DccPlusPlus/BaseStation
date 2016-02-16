@@ -16,7 +16,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 #define TWI_BUF_SIZE  4     // max number of bytes in TWI read/write buffer
 
-enum { READY, READING, WRITING, DATA_RECEIVED };
+enum { READY, READING, WRITING, DATA_RECEIVED, DATA_SEND_SUCCESS, DATA_SEND_FAIL };
 
 struct RemoteSensor{
   static RemoteSensor *firstSensor;
@@ -45,21 +45,26 @@ struct RemoteOutput{
 
 struct DccServer{
   static byte serverID;
-  volatile static byte data[TWI_BUF_SIZE];
-  volatile static byte iData;
+  volatile static byte rData[TWI_BUF_SIZE];
+  volatile static byte rDataIdx;
+  volatile static byte wData[TWI_BUF_SIZE];
+  volatile static byte wDataIdx;
+  volatile static byte wAddress;
   volatile static byte state;
+  static boolean *uploaded;
+  static boolean rUploaded;
   static void load();
   static void store();
   static void status();
   static void refresh();
   static void parse(char *c);
-  static void setServer(int);
-  static void setMaster();
+//  static void setServer(int);
+//  static void setMaster();
   static void check();
-  static void upload(Sensor *);
-  static void upload(Output *);
-  static void upload(RemoteOutput *);
+//  static void upload(Sensor *);
+//  static void upload(Output *);
   static void init();
+  static void twiWrite(boolean&, byte, byte, byte, byte, byte);
 }; // DccServer
 
 
