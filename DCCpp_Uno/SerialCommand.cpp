@@ -21,6 +21,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
+#include "DccServer.h"
 
 extern int __heap_start, *__brkval;
 
@@ -218,6 +219,24 @@ void SerialCommand::parse(char *com){
       Sensor::status();
       break;
 
+/***** SET/SHOW DCC++ SERVER ID  ****/    
+
+    case 'J':      // <J [ID]>
+/*   
+ *   <J ID>:                   sets the SERVER ID of this board to ID
+ *   
+ *    returns: <O> on success, <X> on failure
+ *   
+ *   <J>:                      shows the SERVER ID of this board
+ *   
+ *    returns: <J ID>
+ *   
+ *   ID: the SERVER ID of this board (0=DCC++ MASTER, 1-119=DCC++ BOOSTER)  
+ * 
+ */
+      DccServer::parse(com+1);
+      break;
+
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/    
 
     case 'w':      // <w CAB CV VALUE>
@@ -411,6 +430,8 @@ void SerialCommand::parse(char *com){
     INTERFACE.print(EEStore::eeStore->data.nSensors);
     INTERFACE.print(" ");
     INTERFACE.print(EEStore::eeStore->data.nOutputs);
+    INTERFACE.print(" ");
+    INTERFACE.print(EEStore::eeStore->data.serverID);
     INTERFACE.print(">");
     break;
     
@@ -425,6 +446,20 @@ void SerialCommand::parse(char *com){
      
     EEStore::clear();
     INTERFACE.print("<O>");
+    break;
+
+/***** TOGGLE PIN 13 LED (FOR TESTING ONLY)  ****/
+
+    case 'u':     // <u>
+
+    pinMode(13,OUTPUT);
+    digitalWrite(13,!digitalRead(13));
+    INTERFACE.println("\nOKAY");
+    break;
+
+    case 'U':
+      INTERFACE.println("SENT");
+      Serial1.print("<u>");
     break;
 
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/    
