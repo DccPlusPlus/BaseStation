@@ -448,18 +448,23 @@ void SerialCommand::parse(char *com){
     INTERFACE.print("<O>");
     break;
 
+/***** BUS READ  ****/
+
+    case '#':
+
+    DccServer::busRead(com+1);
+    break;
+
 /***** TOGGLE PIN 13 LED (FOR TESTING ONLY)  ****/
 
     case 'u':     // <u>
 
     pinMode(13,OUTPUT);
     digitalWrite(13,!digitalRead(13));
-    INTERFACE.println("\nOKAY");
     break;
 
     case 'U':
-      INTERFACE.println("SENT");
-      Serial1.print("<u>");
+      DccServer::busWrite(3,"u");
     break;
 
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/    

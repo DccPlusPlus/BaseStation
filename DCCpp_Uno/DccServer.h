@@ -14,10 +14,13 @@ Part of DCC++ BASE STATION for the Arduino
 
 struct DccServer{
   static byte serverID;
+  static boolean isMaster;
   static void load();
   static void store();
   static void status();
-  static void parse(char *c);  
+  static void parse(char *);  
+  static void busWrite(int, char *);
+  static void busRead(char *);
 }; // DccServer
 
 #endif
