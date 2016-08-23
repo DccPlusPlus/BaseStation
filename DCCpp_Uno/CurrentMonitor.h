@@ -27,6 +27,7 @@ struct CurrentMonitor{
   int enablePin;
   float current;
   char *msg;
+  bool triggered;
   CurrentMonitor(int, int, char *);
   static boolean checkTime();
   void check();

@@ -18,6 +18,7 @@ CurrentMonitor::CurrentMonitor(int sensePin, int enablePin, char *msg){
     this->enablePin=enablePin;
     this->msg=msg;
     current=0;
+    triggered=false;
 } // CurrentMonitor::CurrentMonitor
 
 boolean CurrentMonitor::checkTime(){
@@ -35,8 +36,10 @@ void CurrentMonitor::check(){
     digitalWrite(enablePin, LOW);
     // print corresponding error message
     INTERFACE.print(msg);
-  } else if(current < CURRENT_SAMPLE_MAX && !digitalRead(enablePin)) {
+    triggered=true;
+  } else if(current < CURRENT_SAMPLE_MAX && triggered) {
     digitalWrite(enablePin, HIGH);
+    triggered=false;
   }
 } // CurrentMonitor::check  
 
