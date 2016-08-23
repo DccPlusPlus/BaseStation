@@ -193,8 +193,8 @@ void showConfiguration();
 volatile RegisterList mainRegs(MAX_MAIN_REGISTERS);    // create list of registers for MAX_MAIN_REGISTER Main Track Packets
 volatile RegisterList progRegs(2);                     // create a shorter list of only two registers for Program Track Packets
 
-CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
-CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
+CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN, SIGNAL_ENABLE_PIN_MAIN, "<p2>");  // create monitor for current on Main Track
+CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG, SIGNAL_ENABLE_PIN_PROG, "<p3>");  // create monitor for current on Program Track
 
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN ARDUINO LOOP
@@ -424,13 +424,13 @@ void setup(){
 
 #define DCC_SIGNAL(R,N) \
   if(R.currentBit==R.currentReg->activePacket->nBits){    /* IF no more bits in this DCC Packet */ \
-    R.currentBit=0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ \   
+    R.currentBit=0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ \
     if(R.nRepeat>0 && R.currentReg==R.reg){               /*   IF current Register is first Register AND should be repeated */ \
       R.nRepeat--;                                        /*     decrement repeat count; result is this same Packet will be repeated */ \
     } else if(R.nextReg!=NULL){                           /*   ELSE IF another Register has been updated */ \
       R.currentReg=R.nextReg;                             /*     update currentReg to nextReg */ \
       R.nextReg=NULL;                                     /*     reset nextReg to NULL */ \
-      R.tempPacket=R.currentReg->activePacket;            /*     flip active and update Packets */ \        
+      R.tempPacket=R.currentReg->activePacket;            /*     flip active and update Packets */ \
       R.currentReg->activePacket=R.currentReg->updatePacket; \
       R.currentReg->updatePacket=R.tempPacket; \
     } else{                                               /*   ELSE simply move to next Register */ \
@@ -446,10 +446,10 @@ void setup(){
   } else{                                                                              /* ELSE it is a ZERO */ \
     OCR ## N ## A=DCC_ZERO_BIT_TOTAL_DURATION_TIMER ## N;                              /*   set OCRA for timer N to full cycle duration of DCC ZERO bit */ \
     OCR ## N ## B=DCC_ZERO_BIT_PULSE_DURATION_TIMER ## N;                              /*   set OCRB for timer N to half cycle duration of DCC ZERO bit */ \
-  }                                                                                    /* END-ELSE */ \ 
-                                                                                       \ 
-  R.currentBit++;                                         /* point to next bit in current Packet */  
-  
+  }                                                                                    /* END-ELSE */ \
+                                                                                       \
+  R.currentBit++;                                         /* point to next bit in current Packet */
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // NOW USE THE ABOVE MACRO TO CREATE THE CODE FOR EACH INTERRUPT
@@ -478,9 +478,9 @@ ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER
 // - ACTIVATED ON STARTUP IF SHOW_CONFIG_PIN IS TIED HIGH 
 
 void showConfiguration(){
-
+#if COMM_TYPE == 1
   int mac_address[]=MAC_ADDRESS;
-
+#endif
   Serial.print("\n*** DCC++ CONFIGURATION ***\n");
 
   Serial.print("\nVERSION:      ");
@@ -540,7 +540,7 @@ void showConfiguration(){
       Ethernet.begin(mac,IP_ADDRESS);           // Start networking using STATIC IP Address
     #else
       Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
-    #endif     
+    #endif
     
     Serial.print(Ethernet.localIP());
 

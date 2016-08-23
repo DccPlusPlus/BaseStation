@@ -23,10 +23,12 @@ Part of DCC++ BASE STATION for the Arduino
 
 struct CurrentMonitor{
   static long int sampleTime;
-  int pin;
+  int sensePin;
+  int enablePin;
   float current;
   char *msg;
-  CurrentMonitor(int, char *);
+  bool triggered;
+  CurrentMonitor(int, int, char *);
   static boolean checkTime();
   void check();
 };
