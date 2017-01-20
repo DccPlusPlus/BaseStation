@@ -13,7 +13,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CurrentMonitor::CurrentMonitor(int pin, char *msg){
+CurrentMonitor::CurrentMonitor(int pin, const char *msg){
     this->pin=pin;
     this->msg=msg;
     current=0;
