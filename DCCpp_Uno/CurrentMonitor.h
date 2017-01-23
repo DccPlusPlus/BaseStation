@@ -25,8 +25,8 @@ struct CurrentMonitor{
   static long int sampleTime;
   int pin;
   float current;
-  char *msg;
-  CurrentMonitor(int, char *);
+  const char *msg;
+  CurrentMonitor(int, const char*);
   static boolean checkTime();
   void check();
 };
