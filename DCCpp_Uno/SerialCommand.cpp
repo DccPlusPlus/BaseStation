@@ -14,6 +14,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 // See SerialCommand::parse() below for defined text commands.
 
+
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
 #include "Accessories.h"
@@ -21,6 +22,9 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
+#ifdef WITHROTTLE_SUPPORT
+#include "WiThrottle.hpp"
+#endif
 
 extern int __heap_start, *__brkval;
 
@@ -49,6 +53,11 @@ void SerialCommand::process(){
 
     while(INTERFACE.available()>0){    // while there is data on the serial line
      c=INTERFACE.read();
+#ifdef WITHROTTLE_SUPPORT
+     if (WiThrottle::isWTCommand(c)) {
+       WiThrottle::readCommand(c);
+     } else
+#endif
      if(c=='<')                    // start of new command
        sprintf(commandString,"");
      else if(c=='>')               // end of new command
@@ -62,8 +71,16 @@ void SerialCommand::process(){
     EthernetClient client=INTERFACE.available();
 
     if(client){
+#ifdef WITHROTTLE_SUPPORT
+      WiThrottle::sendIntroMessage();
+#endif
       while(client.connected() && client.available()){        // while there is data on the network
       c=client.read();
+#ifdef WITHROTTLE_SUPPORT
+      if (WiThrottle::isWTCommand(c)) {
+	WiThrottle::readCommand(c);
+      } else
+#endif
       if(c=='<')                    // start of new command
         sprintf(commandString,"");
       else if(c=='>')               // end of new command
