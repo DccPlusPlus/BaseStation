@@ -39,7 +39,7 @@ Part of DCC++ BASE STATION for the Arduino
 //
 
 //#define IP_ADDRESS { 192, 168, 1, 200 }
-#define IP_ADDRESS { 192, 168, 2, 4 }
+#define IP_ADDRESS { 192, 168, 0, 2 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -67,7 +67,14 @@ Part of DCC++ BASE STATION for the Arduino
 // ENABLE THE INGLENOOK SIDINGS GAME ADD-ON. REQUIRES AN LCD WITH 5 BUTTONS.
 //
 
-#define INGLENOOK_GAME 1
+#define INGLENOOK_GAME 0
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// ENABLE THE LCD THROTTLE. REQUIRES AN LCD WITH 5 BUTTONS.
+//
+
+#define LCD_THROTTLE 1
 
 /////////////////////////////////////////////////////////////////////////////////////
 

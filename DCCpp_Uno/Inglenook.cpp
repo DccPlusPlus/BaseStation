@@ -39,9 +39,9 @@ void menuChangeEvent(MenuChangeEvent e);
 MenuBackend *menu = new MenuBackend(menuUseEvent, menuChangeEvent);
 
 #if (LCD_DISPLAY_TYPE == LCD_DISPLAY_TYPE_OSEPP)
-LCDKeypad lcd = LCDKeypad();
+static LCDKeypad lcd = LCDKeypad();
 #elif (LCD_DISPLAY_TYPE == LCD_DISPLAY_TYPE_ADAFRUIT)
-Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
+static Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #endif
 
 static InglenookGame *thegame = NULL;

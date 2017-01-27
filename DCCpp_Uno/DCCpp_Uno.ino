@@ -177,8 +177,11 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
-#ifdef INGLENOOK_GAME
+#if (INGLENOOK_GAME == 1)
 #include "Inglenook.h"
+#endif
+#if (LCD_THROTTLE == 1)
+#include "LCDThrottle.h"
 #endif
 
 void showConfiguration();
@@ -199,8 +202,12 @@ volatile RegisterList progRegs(2);                     // create a shorter list 
 CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
 CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
 
-#ifdef INGLENOOK_GAME
+#if (INGLENOOK_GAME == 1)
 InglenookGame *iGame;
+#endif
+
+#if (LCD_THROTTLE == 1)
+LCDThrottle *lcdThrottle;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,6 +215,10 @@ InglenookGame *iGame;
 ///////////////////////////////////////////////////////////////////////////////
 
 void loop(){
+
+#if (LCD_THROTTLE == 1)
+  lcdThrottle->run();
+#endif
   
   SerialCommand::process();              // check for, and process, and new serial commands
   
@@ -218,7 +229,7 @@ void loop(){
 
   Sensor::check();    // check sensors for activate/de-activate
 
-#ifdef INGLENOOK_GAME
+#if (INGLENOOK_GAME == 1)
   iGame->play();
 #endif
   
@@ -233,7 +244,11 @@ void setup(){
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
 
-#ifdef INGLENOOK_GAME
+#if (LCD_THROTTLE == 1)
+  lcdThrottle = LCDThrottle::getThrottle(1, 32);
+#endif
+
+#if (INGLENOOK_GAME == 1)
   iGame = InglenookGame::getTheGame();
   iGame->begin();
 #endif
