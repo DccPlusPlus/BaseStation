@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <EEPROM.h>
+#include <MenuBackend.h>
 #include "SerialCommand.h"
 #include "LCDThrottle.h"
 
@@ -8,8 +10,10 @@
 #define MAX_NOTCH_NORMAL     15
 #define MAX_NOTCH_SWITCHER    7
 
-#define THROTTLE_STATE_RUN      0
-#define THROTTLE_STATE_DEBOUNCE 1
+#define THROTTLE_STATE_RUN         0
+#define THROTTLE_STATE_DEBOUNCE    1
+#define THROTTLE_STATE_MENUS       2
+#define THROTTLE_STATE_MENU_ACTION 3
 
 // MAX_COMMAND_LENGTH is defined in SerialCommand.h
 #define MAX_COMMAND_LENGTH 30
@@ -19,25 +23,33 @@ static char display[2][17];
 
 static LCDThrottle *lcdThrottle = NULL;
 
+// Menu subsystem "stuff"
+static void menuUseEvent(MenuUseEvent e);
+static void menuChangeEvent(MenuChangeEvent e);
+static MenuBackend *menu = new MenuBackend(menuUseEvent, menuChangeEvent);
+
 static LCDThrottle *LCDThrottle::getThrottle(int r, int c) {
   if (lcdThrottle == NULL) {
     lcdThrottle = new LCDThrottle(r, c);
   }
-
   return(lcdThrottle);
 }
 
 LCDThrottle::LCDThrottle(int reg, int cab) {
   lcd = new LCD();
   lcd->begin();
-  throttleState = THROTTLE_STATE_RUN;
+  EEPROM_GetAll();
+  throttleState = THROTTLE_STATE_MENUS;
   this->reg = reg;
-  this->cab = cab;
+  if (cab != 0) {
+    this->cab = cab;
+  }
   notch = 0;
   speed = 0;
   dir = FORWARD;
-  displayMode = DISPLAY_MODE;
+  //displayMode = DISPLAY_MODE;
   power_state = false;
+  menuSetup();
   updateDisplay();
 }
 
@@ -79,6 +91,9 @@ void LCDThrottle::run() {
       // This will toggle power.
       power_state = !power_state;
       sendPowerCommand(power_state);
+      throttleState = THROTTLE_STATE_MENUS;
+      menu->moveDown();
+      doMenuDisplay();
       break;
         
     default:
@@ -90,7 +105,120 @@ void LCDThrottle::run() {
   case THROTTLE_STATE_DEBOUNCE:
     // ???
     break;
+
+  case THROTTLE_STATE_MENUS:
+    switch(button) {
+    case KEYS_UP:
+	menu->moveUp();
+	doMenuDisplay();
+      break;
+    case KEYS_DOWN:
+	menu->moveUp();
+	doMenuDisplay();
+      break;
+    case KEYS_LEFT:
+      break;
+    case KEYS_RIGHT:
+      break;
+    case KEYS_SELECT:
+      throttleState = THROTTLE_STATE_MENU_ACTION;
+      doMenuAction(button);
+      break;
+    case KEYS_LONG_SELECT:
+      throttleState = THROTTLE_STATE_RUN;
+      break;
+
+    }
+    break;
+
+  case THROTTLE_STATE_MENU_ACTION:
+    switch(button) {
+    case KEYS_SELECT:
+      EEPROM_StoreAll();
+      throttleState = THROTTLE_STATE_MENUS;
+      doMenuDisplay();
+      break;
+    case KEYS_UP:
+    case KEYS_DOWN:
+    case KEYS_LEFT:
+    case KEYS_RIGHT:
+      doMenuAction(button);
+      break;
+    case KEYS_LONG_SELECT:
+      EEPROM_StoreAll();
+      throttleState = THROTTLE_STATE_RUN;
+      button = KEYS_NONE;
+    break;
+    }
+    break;
+
+  default:
+    break;
+    
   } // switch(throttleState)
+}
+
+void LCDThrottle::menuSetup() {
+  MenuItem *miRun = new MenuItem("Use Throttle");
+  MenuItem *miAddr = new MenuItem("Set Address");
+  MenuItem *miDisp = new MenuItem("Select Display");
+  menu->getRoot().add(*miRun);
+  miRun->add(*miAddr);
+  miAddr->add(*miDisp);
+}
+
+void LCDThrottle::doMenuDisplay() {
+  if (menu->getCurrent() == "Use Throttle") {
+    lcd->updateDisplay("THROTTLE MENU:", "Use Throttle");
+  }
+  if (menu->getCurrent() == "Set Address") {
+    lcd->updateDisplay("THROTTLE MENU:", "Set Address");
+  }
+  if (menu->getCurrent() == "Select Display") {
+    lcd->updateDisplay("THROTTLE MENU:", "Select Display");
+  }
+}
+
+void LCDThrottle::doMenuAction(int button) {
+  static int incval = 1;
+  static byte incpos = 3;
+  Serial.println("doMenuAction(" + String(button) + ")");
+  
+  if (menu->getCurrent() == "Select Display") {
+    if (button == KEYS_UP || button == KEYS_DOWN) {
+      if (displayMode == DISPLAY_MODE_NORMAL) {
+	displayMode = DISPLAY_MODE_SWITCHER;
+      } else {
+	displayMode = DISPLAY_MODE_NORMAL;
+      }
+    }
+    lcd->updateDisplay("Select Display:",
+		      displayMode == DISPLAY_MODE_NORMAL ?
+		      "Standard" : "Switcher");
+  } // Select Display
+  
+  if (menu->getCurrent() == "Set Address") {
+    if (button == KEYS_SELECT) {
+      incval = 1;
+      incpos = 3;
+    } else if (button == KEYS_UP) {
+      if (cab == 9999) { cab = 0; }
+      else { cab = cab + incval; }
+    } else if (button == KEYS_DOWN) {
+      if (cab == 0) { cab = 9999; }
+      else { cab = cab - incval; }
+    } else if (button == KEYS_LEFT) {
+      if (incval < 1000) { incval *= 10; }
+      if (incpos > 0) { incpos -= 1; }
+    } else if (button == KEYS_RIGHT) {
+      if (incval > 1) { incval /= 10; }
+      if (incpos < 3) { incpos += 1; }
+    }
+    sprintf(display[1], "%04d", cab);
+    lcd->updateDisplay("Set Address:", display[1]);
+    lcd->setCursor(incpos, 1);
+    lcd->cursor();
+  } // Set Address
 }
 
 void LCDThrottle::sendPowerCommand(bool on) {
@@ -224,4 +352,59 @@ void LCDThrottle::updateDisplay() {
     Serial.println("D1:" + String(display[1]));    
     break;
   }
+}
+
+//---------------------------------------------------------------
+// MenuBackend support functions
+
+static void menuChangeEvent(MenuChangeEvent changed) {
+  // Update the display to reflect the current menu state
+  // For now we'll use serial output.
+  Serial.print("Menu change ");
+  Serial.print(changed.from.getName());
+  Serial.print(" -> ");
+  Serial.println(changed.to.getName());
+}
+
+static void menuUseEvent(MenuUseEvent used) {
+  //Serial.print("Menu use ");
+  //Serial.println(used.item.getName());
+}
+
+//---------------------------------------------------------------
+// EEPROM Interface Functions
+
+// Memory Locations (byte address)
+#define EEPROM_BASE 0
+#define EEPROM_DISPLAY (EEPROM_BASE)
+#define EEPROM_ADDRESS (EEPROM_DISPLAY + sizeof(byte))
+#define EEPROM_NEXT  (EEPROM_ADDRESS + sizeof(int))
+
+void LCDThrottle::EEPROM_StoreAll() {
+  EEPROM_StoreDisplay();
+  EEPROM_StoreAddress();
+}
+
+void LCDThrottle::EEPROM_GetAll() {
+  EEPROM_GetDisplay();
+  EEPROM_GetAddress();
+}
+
+void LCDThrottle::EEPROM_StoreDisplay() {
+  byte oz = (displayMode & 0xFF);
+  EEPROM.put(EEPROM_DISPLAY, oz);
+}
+
+void LCDThrottle::EEPROM_GetDisplay() {
+  byte oz;
+  EEPROM.get(EEPROM_DISPLAY, oz);
+  displayMode = oz;
+}
+
+void LCDThrottle::EEPROM_StoreAddress() {
+  EEPROM.put(EEPROM_ADDRESS, cab);
+}
+
+void LCDThrottle::EEPROM_GetAddress() {
+  EEPROM.get(EEPROM_ADDRESS, cab);
 }

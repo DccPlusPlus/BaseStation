@@ -245,7 +245,7 @@ void setup(){
   Serial.flush();
 
 #if (LCD_THROTTLE == 1)
-  lcdThrottle = LCDThrottle::getThrottle(1, 32);
+  lcdThrottle = LCDThrottle::getThrottle(1, 1141);
 #endif
 
 #if (INGLENOOK_GAME == 1)

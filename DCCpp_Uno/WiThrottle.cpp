@@ -153,6 +153,7 @@ static void WiThrottle::parseNCommand(char *s) {
   // Get the Name and store it somewhere... if needed.
   Serial.print("Name = ");
   Serial.println(String(s));
+  // Reply *<heartbeat time> e.g. *10 for 10 seconds or *0 for no heartbeat expected
   return;
 }
 
@@ -304,6 +305,8 @@ int WiThrottle::getDirForCab(int c) {
 
 void WiThrottle::sendIntroMessage(void) {
   INTERFACE.println("VN2.0");
+  INTERFACE.println("RL0");
+  INTERFACE.println("PPA0"); // PPA0=off PPA1=on PPA2=unknown
   // TODO: Send roster here
 #if COMM_TYPE == 1
   INTERFACE.print("PW");

@@ -38,6 +38,15 @@ class LCDThrottle {
   void increaseSpeed();
   void decreaseSpeed();
   void updateDisplay();
+  void menuSetup();
+  void doMenuDisplay();
+  void doMenuAction(int button);
+  void EEPROM_StoreAll();
+  void EEPROM_GetAll();
+  void EEPROM_StoreDisplay();
+  void EEPROM_GetDisplay();
+  void EEPROM_StoreAddress();
+  void EEPROM_GetAddress();
   
   
 };
