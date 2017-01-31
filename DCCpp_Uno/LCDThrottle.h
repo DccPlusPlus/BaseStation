@@ -1,19 +1,13 @@
 #ifndef LCD_THROTTLE_H
 #define LCD_THROTTLE_H
 
-// DCC++ Throttle using the buttons on a 16x2 + 5 button Display Shield
+#include "LCD.h"
 
-// LCD Display Types:
-//
-//  0 = OSEPP LCDKeypad
-//  1 = Adafruit RGB LCD  
-#define LCD_DISPLAY_TYPE_OSEPP    0
-#define LCD_DISPLAY_TYPE_ADAFRUIT 1
-#define LCD_DISPLAY_TYPE LCD_DISPLAY_TYPE_OSEPP
+// DCC++ Throttle using the buttons on a 16x2 + 5 button Display Shield
 
 #define DISPLAY_MODE_NORMAL   1
 #define DISPLAY_MODE_SWITCHER 2
-#define DISPLAY_MODE DISPLAY_MODE_SWITCHER
+#define DISPLAY_MODE DISPLAY_MODE_NORMAL
 
 // Throttle Directions
 #define FORWARD 1
@@ -28,22 +22,23 @@ class LCDThrottle {
   int dir;
   int displayMode;
   int notch;
-  char **display;
-
+  LCD *lcd;
+  bool power_state;
+  
  public:
-  static LCDThrottle *getThrottle(int r, int c, char** d);
-  //void begin(LCDKeypad *lcd);
+  static LCDThrottle *getThrottle(int r, int c);
   void run();
 
  protected:
   LCDThrottle(int reg, int cab);
   void sendThrottleCommand();
-  //int checkButtons();
+  void sendPowerCommand(bool on);
   int debounceButtons();
   int getButton();
   void increaseSpeed();
   void decreaseSpeed();
   void updateDisplay();
+  
   
 };
 
