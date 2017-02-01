@@ -177,9 +177,6 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
-#if (INGLENOOK_GAME == 1)
-#include "Inglenook.h"
-#endif
 #if (LCD_THROTTLE == 1)
 #include "LCDThrottle.h"
 #endif
@@ -201,10 +198,6 @@ volatile RegisterList progRegs(2);                     // create a shorter list 
 
 CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
 CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
-
-#if (INGLENOOK_GAME == 1)
-InglenookGame *iGame;
-#endif
 
 #if (LCD_THROTTLE == 1)
 LCDThrottle *lcdThrottle;
@@ -229,10 +222,6 @@ void loop(){
 
   Sensor::check();    // check sensors for activate/de-activate
 
-#if (INGLENOOK_GAME == 1)
-  iGame->play();
-#endif
-  
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -244,14 +233,10 @@ void setup(){
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
 
-#if (LCD_THROTTLE == 1)
-  lcdThrottle = LCDThrottle::getThrottle(1, 1141);
-#endif
-
-#if (INGLENOOK_GAME == 1)
-  iGame = InglenookGame::getTheGame();
-  iGame->begin();
-#endif
+  #if (LCD_THROTTLE == 1)
+  lcdThrottle  = new LCDThrottle();
+  lcdThrottle->begin(1);
+  #endif
 
   #ifdef SDCARD_CS
     pinMode(SDCARD_CS,OUTPUT);

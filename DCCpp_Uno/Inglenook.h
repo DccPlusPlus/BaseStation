@@ -1,8 +1,6 @@
 #ifndef INGLENOOK_H
 #define INGLENOOK_H
 
-#include "LCD.h"
-
 // NOTE: These are actually set by the rules of the game...
 // WARNING: There are several places (initialization, etc.) where
 // the value of these is assumed fixed at 5 and 8.
@@ -22,25 +20,20 @@ const String carnames[NUM_CARS] = { // String names of cars on the layout (for d
 
 class InglenookGame {
  private:
-  LCD *lcd;
+  int car_index;
   
  public:
-  static InglenookGame *getTheGame();
+  InglenookGame(); 
   void begin();
-  void play();
   void buildTrain(void);
-  void doDisplayTrain();
+  void doDisplayTrain(LCD *lcd, char *row1, char *row2);
+  int carIndex();
+  void setCarIndex(int c);
+  void doMenuDisplay(LCD *lcd, char *row1, char *row2);
+  void doListTrain(LCD *lcd, char *row1, char *row2, int car);
 
  protected:
-  InglenookGame(); 
-  void menuSetup();
-  void printWelcome();
-  int checkButtons();
-  int debounceButton(int button);
-  void doMenuDisplay();
-  void doListTrain(int car);
-  void updateDisplay(char *row1, char *row2);
-  
+  //void printWelcome(LCD *lcd, char *row1, char *row2);
 };
 
 

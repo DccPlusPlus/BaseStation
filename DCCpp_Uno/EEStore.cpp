@@ -13,6 +13,16 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Sensor.h"
 #include "Outputs.h"
 #include <EEPROM.h>
+#if (LCD_THROTTLE == 1)
+// NOTE: Because the turnout/sensor/output data is variable length, the
+// LCDThrottle data MUST come first in the list of things to be read/written
+// We only allocate space for them (using advance()) and don't actually
+// read/write them, but if we don't do that, then their locations could
+// move and cause problems.  And I don't want to have to re-write all the
+// sensor/turnout/output data every time the user changes between
+// standard and switcher throttle display.
+#include "LCDThrottle.h"
+#endif // LCD_THROTTLE
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +42,9 @@ void EEStore::init(){
   }
   
   reset();            // set memory pointer to first free EEPROM space
+#if (LCD_THROTTLE == 1)
+  advance(sizeof(struct LCDThrottleData));
+#endif
   Turnout::load();    // load turnout definitions
   Sensor::load();     // load sensor definitions
   Output::load();     // load output definitions
@@ -54,6 +67,9 @@ void EEStore::clear(){
 
 void EEStore::store(){
   reset();
+#if (LCD_THROTTLE == 1)
+  advance(sizeof(LCDThrottleData));
+#endif
   Turnout::store();
   Sensor::store();  
   Output::store();  

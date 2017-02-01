@@ -2,6 +2,7 @@
 #define LCD_THROTTLE_H
 
 #include "LCD.h"
+#include "Inglenook.h"
 
 // DCC++ Throttle using the buttons on a 16x2 + 5 button Display Shield
 
@@ -13,24 +14,29 @@
 #define FORWARD 1
 #define REVERSE 0
 
+class MenuItem;
+
 class LCDThrottle {
- private:
-  int throttleState; 
+private:
+  int throttleState;
+int jumpbackState;
   int reg;
   int cab;
   int speed;
   int dir;
-  int displayMode;
+  byte displayMode;
   int notch;
   LCD *lcd;
+  int maxSpeed;
   bool power_state;
+  InglenookGame game;
   
  public:
-  static LCDThrottle *getThrottle(int r, int c);
+  LCDThrottle();
+  void begin(int reg);
   void run();
 
  protected:
-  LCDThrottle(int reg, int cab);
   void sendThrottleCommand();
   void sendPowerCommand(bool on);
   int debounceButtons();
@@ -41,14 +47,23 @@ class LCDThrottle {
   void menuSetup();
   void doMenuDisplay();
   void doMenuAction(int button);
-  void EEPROM_StoreAll();
-  void EEPROM_GetAll();
-  void EEPROM_StoreDisplay();
-  void EEPROM_GetDisplay();
-  void EEPROM_StoreAddress();
-  void EEPROM_GetAddress();
-  
+  void load();
+  void store();
+  void doGameMenus(int b);
+  void setupInglenookMenu(MenuItem *m);
+  void inglenookBegin();
+  void doGameMenuDisplay(); 
+  int calcIncValue(int button, int maxpos, int val, int maxval, const char *fmt, const char *label); 
   
 };
+
+struct LCDThrottleData {
+byte dislay;
+byte reserved1;
+int  address;
+int maxspeed;
+int reserved[5];
+};
+
 
 #endif // LCD_THROTTLE_H
