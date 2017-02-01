@@ -177,9 +177,6 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
-#if (LCD_THROTTLE == 1)
-#include "LCDThrottle.h"
-#endif
 
 void showConfiguration();
 
@@ -199,20 +196,12 @@ volatile RegisterList progRegs(2);                     // create a shorter list 
 CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
 CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
 
-#if (LCD_THROTTLE == 1)
-LCDThrottle *lcdThrottle;
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN ARDUINO LOOP
 ///////////////////////////////////////////////////////////////////////////////
 
 void loop(){
 
-#if (LCD_THROTTLE == 1)
-  lcdThrottle->run();
-#endif
-  
   SerialCommand::process();              // check for, and process, and new serial commands
   
   if(CurrentMonitor::checkTime()){      // if sufficient time has elapsed since last update, check current draw on Main and Program Tracks 
@@ -232,11 +221,6 @@ void setup(){
 
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
-
-  #if (LCD_THROTTLE == 1)
-  lcdThrottle  = new LCDThrottle();
-  lcdThrottle->begin(1);
-  #endif
 
   #ifdef SDCARD_CS
     pinMode(SDCARD_CS,OUTPUT);
