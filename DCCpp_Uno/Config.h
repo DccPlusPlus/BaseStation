@@ -31,7 +31,7 @@ Part of DCC++ BASE STATION for the Arduino
 //  2 = Arduino.org Ethernet/SD-Card Shield
 //  3 = Seeed Studio Ethernet/SD-Card Shield W5200
 
-#define COMM_INTERFACE   0
+#define COMM_INTERFACE   1
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -39,7 +39,7 @@ Part of DCC++ BASE STATION for the Arduino
 //
 
 //#define IP_ADDRESS { 192, 168, 1, 200 }
-#define IP_ADDRESS { 192, 168, 0, 2 }
+//#define IP_ADDRESS { 192, 168, 0, 42 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 //

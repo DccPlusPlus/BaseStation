@@ -13,14 +13,30 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Comm.h"
 #include "SerialCommand.h"
 #include "PacketRegister.h"
+#include "Outputs.h"
+#include "Accessories.h"
 #include "WiThrottle.hpp"
 
 #define FORCED_REGISTER_NUMBER 1
 
-extern RegisterList mainRegs;
+// Store decoder addresses for DCC turnouts here.  These take
+// priority over actual built-in outputs.  One should take
+// care not to have the name spaces overlap...
+
+#define MAX_DCC_TURNOUTS 5
+struct TurnoutData dccTurnouts[MAX_DCC_TURNOUTS] = {
+  { 1, 0, 1, 1 },
+  { 1, 0, 2, 2 },
+  { 1, 0, 3, 3 },
+  { 1, 0, 4, 4 },
+  { 1, 0, 5, 5 },
+};
+
+//extern RegisterList mainRegs;
 
 static char command[MAX_COMMAND_LENGTH+1];
 static int address = 3;
+static int speed = 0;
 
 static const byte byte1FuncOnVals[29] = { 144, 129, 130, 132, 136,
 					  177, 178, 180, 184,
@@ -87,6 +103,7 @@ static void WiThrottle::readCommand(char c) {
 
 static void WiThrottle::parseToDCCpp(char *s) {
   // Do something :)
+  Serial.print("RX: ");
   Serial.println(s);
   switch (s[0]) {
   case 'T': // Throttle
@@ -96,7 +113,7 @@ static void WiThrottle::parseToDCCpp(char *s) {
   case 'M': // Multi-Throttle
     parseMCommand(s);
     break;
-  case 'C': // Old "T" command
+  case 'C': // Old "T" command - not used anymore. Kept for backward compatibility
     if (s[1] == 'T') {
       doThrottleCommand(NULL, s+2);
     }
@@ -107,9 +124,11 @@ static void WiThrottle::parseToDCCpp(char *s) {
   case 'H': // Hardware (get device UUID)
     parseHCommand(s);
     break;
+  case 'P': // Panel stuff
+    parsePCommand(s);
+    break;
   case '*': // Heartbeat
   case 'D': // Direct hex packet
-  case 'P': // Panel stuff
   case 'R': // Roster stuff
   case 'Q': // Quit
     break;
@@ -131,18 +150,53 @@ static bool WiThrottle::isWTCommand(char c) {
   case 'P': // Panel
   case 'R': // Roster
   case 'Q': // Quit
-    Serial.print(c);
-    Serial.println(" is a WiThrottle cmd");
+    //Serial.print(c);
+    //Serial.println(" is a WiThrottle cmd");
     return(true);
   default:
     return(false);
   }
 }
 
+static void WiThrottle::parsePCommand(char *p) {
+  // Commands:
+  //     PPAx : Track power on/off
+  //     PTAx : Turnout throw/close
+  //     PRAx : Route set/unset
+  switch(p[1]) {
+  case 'P':
+    // Track power on or off
+    switch(p[2]) {
+    case 'A':
+      if (p[3] == '1') {
+	// Track power ON
+	sprintf(command, "1");
+	SerialCommand::parse(command);
+      } else if (p[3] == '0') {
+	// Track power OFF
+	sprintf(command, "0");
+	SerialCommand::parse(command);
+      } // p[3]
+      // Else ignore.
+      break;
+    } // p[2]
+    break;
+
+  case 'T':
+    // Turnout command
+    // C = close T = throw 2 = toggle
+    if (p[2] == 'A') {
+      handleTurnout(p+3);
+    }
+    break;
+  } // switch(p[1])
+}
+
 static void WiThrottle::parseHCommand(char *s) {
   switch(s[1]) {
   case 'U':
     // get device UDID and do something with it.
+    Serial.println("RX Device ID: " + String(s+2));
     return;
   default:
     return;
@@ -154,19 +208,21 @@ static void WiThrottle::parseNCommand(char *s) {
   Serial.print("Name = ");
   Serial.println(String(s));
   // Reply *<heartbeat time> e.g. *10 for 10 seconds or *0 for no heartbeat expected
+  doPrintln("*0");
   return;
 }
 
 static void WiThrottle::parseMCommand(char *s) {
   char *key, *action;
-  switch(s[1]) {
+  switch(s[2]) {
   case 'A':
+  case '+':
     key = strtok(s, "<;>");
     action = strtok(NULL, "<;>");
     Serial.println(key);
     Serial.println(action);
     doThrottleCommand(key, action);
-  case '+':
+    break;  
   case '-':
   default:
     return;
@@ -186,6 +242,10 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     reg = getRegisterForCab(address);
     dir = getDirForCab(address);
     sprintf(command, "t %d %d %s %d", reg, address, (action+1), dir );
+    sscanf(action+1, "%d", &spd);
+    //speed = strtol((action+1), NULL, 10);
+    Serial.print("new speed = ");
+    Serial.println(spd);
     SerialCommand::parse(command);
     break;
     
@@ -248,6 +308,7 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
   case 'L': // set long address
   case 'S': // set short address
     address = strtol((action+1), NULL, 10);
+    doPrintln("MT+L" + String(address) + "<;>");
     break;
 
   case 'q': // request (v>=2.0)
@@ -293,23 +354,104 @@ int WiThrottle::getRegisterForCab(int c) {
 }
 
 int WiThrottle::getSpeedForCab(int c) {
-  int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
-  if (spd < 0) { spd = -spd; }
+  int spd = speed;
+  //int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
+  //if (spd < 0) { spd = -spd; }
   return(spd);
 }
 
 int WiThrottle::getDirForCab(int c) {
-  int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
+  // In the speedTable, reverse speeds are negative.
+  // See PacketRegister::setThrottle()
+  int spd = 0;
+    //int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
   return(spd >= 0 ? 1 : 0);
 }
 
 void WiThrottle::sendIntroMessage(void) {
-  INTERFACE.println("VN2.0");
-  INTERFACE.println("RL0");
-  INTERFACE.println("PPA0"); // PPA0=off PPA1=on PPA2=unknown
-  // TODO: Send roster here
+  // Send version number of protocol supported
+  doPrintln("VN2.0");
+  // Send the roster (no roster entries, so 0)
+  doPrintln("RL0");
+  // Send Power Status
+  // check pin SIGNAL_ENABLE_PIN_MAIN
+  // PPA0=off PPA1=on PPA2=unknown
+  if (digitalRead(SIGNAL_ENABLE_PIN_MAIN) == HIGH) {
+    doPrintln("PPA1");
+  } else {
+    doPrintln("PPA0");
+  }
+  // Send any defined consists.
+  doPrintln("RCC0"); // 0 Consists defined.
+  // Send turnout info ...
+  doPrintln("PTT]\[Turnouts}|{Turnout]\[Closed}|{2]\[Thrown}|{4");
+  // TODO: Send turnouts ("PTL<blah>") and Routes ("PRT<blah>") here.
+  // Send the port number
+  listTurnouts();
 #if COMM_TYPE == 1
-  INTERFACE.print("PW");
-  INTERFACE.println(ETHERNET_PORT);
+  doPrint("PW");
+  doPrintln(ETHERNET_PORT);
 #endif
+}
+
+#define TURNOUT_UNKNOWN 1
+#define TURNOUT_CLOSED  2
+#define TURNOUT_THROWN  4
+
+void WiThrottle::listTurnouts(void) {
+  if (Output::firstOutput != NULL) {
+    doPrint("PTL");
+    for (int i = 0; i < MAX_DCC_TURNOUTS; i++) {
+      if (dccTurnouts[i].id > 0) {
+	sprintf(command,"]\\[%d}|{%d}|{%d]", dccTurnouts[i].address, dccTurnouts[i].id, TURNOUT_UNKNOWN);
+	doPrint(command);
+      }
+    }
+    /*
+    Output *pt = Output::firstOutput;
+    while (pt != NULL) {
+      sprintf(command, "]\\[%d|%d|%d]", pt->data.id, pt->data.id,
+	      (pt->data.oStatus == 0 ? TURNOUT_CLOSED : TURNOUT_THROWN));
+      INTERFACE.print(command);
+      pt = pt->nextOutput;
+    } // while
+    */
+    doPrintln("]"); // Send close bracket and EOL
+  } // if
+}
+				   
+void WiThrottle::handleTurnout(char *s) {
+  // Substring of PTAxxx command, starting with byte 3
+  int addr = strtol(s+1, NULL, 10);
+  for (int i = 0; i < MAX_DCC_TURNOUTS; i++) {
+    if (dccTurnouts[i].address == addr) {
+      sprintf(command, "a %d 0 %d", addr, (s[0] == 'C' ? 0 : 1));
+      SerialCommand::parse(command);
+      dccTurnouts[i].tStatus = (s[0] == 'C'? 0 : 1);
+      return;
+    }
+  } // end for loop.
+  // If we got here, then it's not a defined DCC turnout.  Might be
+  // an Output.  Handle that differently.
+  // err... for now don't handle it at all.
+}
+
+void WiThrottle::doPrint(char *x) {
+  Serial.print(x);
+  INTERFACE.print(x);
+}
+
+void WiThrottle::doPrintln(char *x) {
+  Serial.println(x);
+  INTERFACE.println(x);
+}
+
+void WiThrottle::doPrint(StringSumHelper& x) {
+  Serial.print(x);
+  INTERFACE.print(x);
+}
+
+void WiThrottle::doPrintln(StringSumHelper& x) {
+  Serial.println(x);
+  INTERFACE.println(x);
 }

@@ -20,6 +20,7 @@ protected:
   static void parseHCommand(char *s);
   static void parseNCommand(char *s);
   static void parseMCommand(char *s);
+  static void parsePCommand(char *s);
   static void doThrottleCommand(char *key, char *action);
   static byte getFuncByte1(bool t, int f);
   static byte getFuncByte2(bool t, int f);
@@ -27,6 +28,12 @@ protected:
   static int getSpeedForCab(int c);
   static int getDirForCab(int c);
   static void handleRequest(char *s);
+  static void listTurnouts(void);
+  static void handleTurnout(char *s);
+  static void doPrint(char *x);
+  static void doPrintln(char *x);
+  static void doPrint(StringSumHelper& x);
+  static void doPrintln(StringSumHelper& x);
 public:
   static void parseToDCCpp(char *s);
   static bool isWTCommand(char c);
