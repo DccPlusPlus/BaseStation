@@ -32,7 +32,7 @@ struct TurnoutData dccTurnouts[MAX_DCC_TURNOUTS] = {
   { 1, 0, 5, 5 },
 };
 
-//extern RegisterList mainRegs;
+extern RegisterList mainRegs;
 
 static char command[MAX_COMMAND_LENGTH+1];
 static int address = 3;
@@ -354,17 +354,17 @@ int WiThrottle::getRegisterForCab(int c) {
 }
 
 int WiThrottle::getSpeedForCab(int c) {
-  int spd = speed;
-  //int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
-  //if (spd < 0) { spd = -spd; }
+  //int spd = speed;
+  int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
+  if (spd < 0) { spd = -spd; }
   return(spd);
 }
 
 int WiThrottle::getDirForCab(int c) {
   // In the speedTable, reverse speeds are negative.
   // See PacketRegister::setThrottle()
-  int spd = 0;
-    //int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
+  //int spd = 0;
+  int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
   return(spd >= 0 ? 1 : 0);
 }
 
