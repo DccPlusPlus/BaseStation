@@ -238,6 +238,11 @@ static void WiThrottle::parseMCommand(char *s) {
     Serial.println("Key = " + String(key));
     Serial.println("Action = " + String(action));
     doThrottleCommand(key, action);
+    if (s[2] == '+') {
+      doPrint(key);
+      doPrint("<;>");
+      doPrintln(action);
+    }
     break;  
   case '-':
   default:
@@ -248,6 +253,7 @@ static void WiThrottle::parseMCommand(char *s) {
 static void WiThrottle::doThrottleCommand(char *key, char *action) {
   int reg, spd, f;
   byte byte1, byte2;
+  address = strtol(key+4, NULL, 10);
   // TODO: When supporting multiple throttles, KEY will tell us which
   // throttle to do the action on.
   switch(action[0]) {
