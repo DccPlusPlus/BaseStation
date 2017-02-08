@@ -74,20 +74,24 @@ void SerialCommand::process(){
 #ifdef WITHROTTLE_SUPPORT
       WiThrottle::sendIntroMessage();
 #endif
-      while(client.connected() && client.available()){        // while there is data on the network
-      c=client.read();
+      while(client.connected()) {
+	while (client.available()) {        // while there is data on the network
+	  c=client.read();
 #ifdef WITHROTTLE_SUPPORT
-      if (WiThrottle::isWTCommand(c)) {
-	WiThrottle::readCommand(c);
-      } else
+	  if (WiThrottle::isWTCommand(c)) {
+	    WiThrottle::readCommand(c);
+	  } else {
 #endif
-      if(c=='<')                    // start of new command
-        sprintf(commandString,"");
-      else if(c=='>')               // end of new command
-        parse(commandString);                    
-      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
-        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
-      } // while
+	    // Process as a DCC++ command
+	    if(c=='<')                    // start of new command
+	      sprintf(commandString,"");
+	    else if(c=='>')               // end of new command
+	      parse(commandString);                    
+	    else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
+	      sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
+	  } // else withrottle
+	} // while available
+      }// while connected
     }
 
   #endif
@@ -97,6 +101,8 @@ void SerialCommand::process(){
 ///////////////////////////////////////////////////////////////////////////////
 
 void SerialCommand::parse(char *com){
+
+ Serial.println("WCMD: " + String(com));
   
   switch(com[0]){
 

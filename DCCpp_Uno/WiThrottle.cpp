@@ -37,6 +37,7 @@ extern RegisterList mainRegs;
 static char command[MAX_COMMAND_LENGTH+1];
 static int address = 3;
 static int speed = 0;
+static int dir = 1;
 
 static const byte byte1FuncOnVals[29] = { 144, 129, 130, 132, 136,
 					  177, 178, 180, 184,
@@ -170,12 +171,16 @@ static void WiThrottle::parsePCommand(char *p) {
     case 'A':
       if (p[3] == '1') {
 	// Track power ON
+	Serial.println("Power ON");
 	sprintf(command, "1");
 	SerialCommand::parse(command);
+	INTERFACE.println("PPA1");
       } else if (p[3] == '0') {
 	// Track power OFF
+	Serial.println("Power OFF");
 	sprintf(command, "0");
 	SerialCommand::parse(command);
+	INTERFACE.println("PPA0");
       } // p[3]
       // Else ignore.
       break;
@@ -219,8 +224,8 @@ static void WiThrottle::parseMCommand(char *s) {
   case '+':
     key = strtok(s, "<;>");
     action = strtok(NULL, "<;>");
-    Serial.println(key);
-    Serial.println(action);
+    Serial.println("Key = " + String(key));
+    Serial.println("Action = " + String(action));
     doThrottleCommand(key, action);
     break;  
   case '-':
@@ -230,7 +235,7 @@ static void WiThrottle::parseMCommand(char *s) {
 }
 
 static void WiThrottle::doThrottleCommand(char *key, char *action) {
-  int reg, dir, spd, f;
+  int reg, spd, f;
   byte byte1, byte2;
   // TODO: When supporting multiple throttles, KEY will tell us which
   // throttle to do the action on.
@@ -240,12 +245,14 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     // DCC++ Returns: <T REGISTER SPEED DIRECTION>
     if (address < 0) { return; }
     reg = getRegisterForCab(address);
-    dir = getDirForCab(address);
+    //dir = getDirForCab(address);
     sprintf(command, "t %d %d %s %d", reg, address, (action+1), dir );
     sscanf(action+1, "%d", &spd);
     //speed = strtol((action+1), NULL, 10);
     Serial.print("new speed = ");
-    Serial.println(spd);
+    Serial.print(action+1);
+    Serial.print(" dir = ");
+    Serial.println(dir);
     SerialCommand::parse(command);
     break;
     
@@ -261,13 +268,21 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     
   case 'F': // Function
   case 'f': // force function (v>=2.0)
+    // WiThrottle Format: FxVV
+    // x = 1 (on) or 0 (off)
+    // VV is the function number
     // DCC++ Format: <f CAB BYTE1 [BYTE2]>
     // DCC++ Returns: (none)
     f = strtol((action+2), NULL,10);
-    if (f == 0 || f > 28) {
+    Serial.println("F = " + String(f) + " is " + String(action[1] == '1' ? "ON" : "OFF"));
+    if (f < 0 || f > 28) {
       // Invalid conversion
       break;
     }
+    // NOTE:  strtol() returns zero on an invalid conversion
+    // That is harmless here. F0 is the headlight, so the worst
+    // thing that will happen on an invalid conversion is we tooggle
+    // the headlight.  Oh well.
     byte1 = getFuncByte1((action[1] == '1'), f);
     byte2 = getFuncByte2((action[1] == '1'), f);
     if (byte2 == 255) { 
@@ -284,9 +299,14 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     if (address < 0) { return; }
     reg = getRegisterForCab(address);
     spd = getSpeedForCab(address);
-    sprintf(command, "t %d %d %d %c", reg, address, spd,
-	    (action[1] == '0' ? '0' : '1'));
-      Serial.print("cmd = " + String(command));
+    if (action[1] == '0') {
+      dir = 0;
+    } else {
+      dir = 1;
+    }
+    sprintf(command, "t %d %d %d %d", reg, address, spd, dir);
+    Serial.println("cmd = " + String(command));
+    Serial.println("dir = " + String(dir));
     SerialCommand::parse(command);
     break;
     
@@ -315,12 +335,12 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     handleRequest(action);
     break;
 
+  case 'Q': // quit
   case 'E': // set address from roster (v>=1.7)
   case 'C': // consist
   case 'c': // consist lead from roster (v>=1.7)
   case 's': // speed step mode (v>= 2.0)
   case 'm': // momentary (v>=2.0)
-  case 'Q': // quit
   default:
     return;
   }
@@ -364,11 +384,20 @@ int WiThrottle::getDirForCab(int c) {
   // In the speedTable, reverse speeds are negative.
   // See PacketRegister::setThrottle()
   //int spd = 0;
+  // Have to special-handle the speed = 0 case
+  // since there is no implied direction.
+  
   int spd = mainRegs.speedTable[FORCED_REGISTER_NUMBER];
-  return(spd >= 0 ? 1 : 0);
+  if (spd == 0) {
+    return(dir);
+  } else {
+    dir = (spd > 0 ? 1 : 0);
+    return(dir);
+  }
 }
 
 void WiThrottle::sendIntroMessage(void) {
+  client = &c;
   // Send version number of protocol supported
   doPrintln("VN2.0");
   // Send the roster (no roster entries, so 0)
