@@ -34,10 +34,21 @@ struct TurnoutData dccTurnouts[MAX_DCC_TURNOUTS] = {
 
 extern RegisterList mainRegs;
 
-static char command[MAX_COMMAND_LENGTH+1];
+static char message[MAX_COMMAND_LENGTH+1];
+static char *command = SerialCommand::commandString;
 static int address = 3;
 static int speed = 0;
 static int dir = 1;
+
+bool fstate[29] = {
+  false, false, false, false, false,
+  false, false, false, false, false,
+  false, false, false, false, false,
+  false, false, false, false, false,
+  false, false, false, false, false,
+  false, false, false, false
+};
+  
 
 static const byte byte1FuncOnVals[29] = { 144, 129, 130, 132, 136,
 					  177, 178, 180, 184,
@@ -273,8 +284,9 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     // VV is the function number
     // DCC++ Format: <f CAB BYTE1 [BYTE2]>
     // DCC++ Returns: (none)
+    address = strtol(key+4, NULL, 10);
     f = strtol((action+2), NULL,10);
-    Serial.println("F = " + String(f) + " is " + String(action[1] == '1' ? "ON" : "OFF"));
+    Serial.println("addr = " + String(address) + " F = " + String(f) + " is " + String(action[1] == '1' ? "ON" : "OFF"));
     if (f < 0 || f > 28) {
       // Invalid conversion
       break;
@@ -283,14 +295,27 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     // That is harmless here. F0 is the headlight, so the worst
     // thing that will happen on an invalid conversion is we tooggle
     // the headlight.  Oh well.
-    byte1 = getFuncByte1((action[1] == '1'), f);
-    byte2 = getFuncByte2((action[1] == '1'), f);
-    if (byte2 == 255) { 
-      sprintf(command, "f %d %d", address, byte1);
-    } else {
-      sprintf(command, "f %d %d %d", address, byte1, byte2);
+    if ((action[1] == '1') || (f == 2)) {
+      // Button Pressed.. Take action
+      // Horn (F2) is momentary.  Take action even if action[1] == 0
+      // Toggle the state.
+      fstate[f] = !fstate[f];
+      // Get the bytes to send.
+      byte1 = getFuncByte1(fstate[f], f);
+      byte2 = getFuncByte2(fstate[f], f);
+      // Build the DCC++ message and send it
+      if (byte2 == 255) { 
+	sprintf(message, "f %d %d", address, byte1);
+      } else {
+	sprintf(message, "f %d %d %d", address, byte1, byte2);
+      }
+      SerialCommand::parse(message);
+      // Send the response to the WiThrottle
+      doPrint(key);
+      doPrint("<;>");
+      action[1] = (fstate[f] == true ? '1' : '0');
+      doPrintln(action);
     }
-    SerialCommand::parse(command);
     break;
     
   case 'R': // Direction
@@ -397,7 +422,6 @@ int WiThrottle::getDirForCab(int c) {
 }
 
 void WiThrottle::sendIntroMessage(void) {
-  client = &c;
   // Send version number of protocol supported
   doPrintln("VN2.0");
   // Send the roster (no roster entries, so 0)
