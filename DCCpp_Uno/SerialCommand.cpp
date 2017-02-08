@@ -22,6 +22,9 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
+#ifdef WITHROTTLE_SUPPORT
+#include "WiThrottle.hpp"
+#endif
 
 extern int __heap_start, *__brkval;
 
