@@ -290,7 +290,14 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
     // VV is the function number
     // DCC++ Format: <f CAB BYTE1 [BYTE2]>
     // DCC++ Returns: (none)
-    address = strtol(key+4, NULL, 10);
+    if (key[0] == 'M') {
+      address = strtol(key+4, NULL, 10);
+    } else {
+      ; // previous versions of the interface (current EngineDriver)
+      // send the older TF command, not the M command.  In this case
+      // there is no address to be parsed in the command.
+      // Keep whatever address is stored from previous commands
+    }
     f = strtol((action+2), NULL,10);
     Serial.println("addr = " + String(address) + " F = " + String(f) + " is " + String(action[1] == '1' ? "ON" : "OFF"));
     if (f < 0 || f > 28) {
@@ -317,8 +324,14 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
       }
       SerialCommand::parse(message);
       // Send the response to the WiThrottle
-      doPrint(key);
-      doPrint("<;>");
+      // Needs to be tested for EngineDriver
+      if (key[0] == 'M') {
+	doPrint(key);
+	doPrint("<;>");
+      } else {
+	// Old "T" support
+	doPrint("T");
+      }
       action[1] = (fstate[f] == true ? '1' : '0');
       doPrintln(action);
     }
@@ -360,6 +373,15 @@ static void WiThrottle::doThrottleCommand(char *key, char *action) {
   case 'S': // set short address
     address = strtol((action+1), NULL, 10);
     doPrintln("MT+L" + String(address) + "<;>");
+    // Formulate a response
+    if (key[0] == 'M') {
+      doPrint(key);
+      doPrintln("<;>");
+    } else {
+      // Old "T" or "S" support
+      // Needs to be tested
+      doPrintln(key);
+    }
     break;
 
   case 'q': // request (v>=2.0)
