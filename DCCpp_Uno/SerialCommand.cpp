@@ -458,7 +458,7 @@ void SerialCommand::parse(char *com){
     bitSet(TCCR1B,CS11);
     bitClear(TCCR1B,CS10);
 
-    #ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+    #ifdef ARDUINO_AVR_UNO      // Configuration for UNO/DCC++ HAT
 
       bitSet(TCCR0B,CS02);    // set Timer 0 prescale=256 - SLOWS NORMAL SPEED BY A FACTOR OF 4
       bitClear(TCCR0B,CS01);
