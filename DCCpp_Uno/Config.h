@@ -15,7 +15,7 @@ Part of DCC++ BASE STATION for the Arduino
 //  1 = POLOLU MC33926 MOTOR SHIELD   (MAX 28V/3A PER CHANNEL)
 //  2 = CESM DCC++ HAT                (MAX 28V/5A PER CHANNEL)  
 
-#define MOTOR_SHIELD_TYPE   0
+#define MOTOR_SHIELD_TYPE   2
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
