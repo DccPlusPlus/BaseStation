@@ -1,7 +1,6 @@
 MIT License
 
-Software Copyright (c) 2013-2016 Gregg E. Berman
-Hardware Copyright (c) 2017 David Cutting
+Copyright (c) 2017 David Cutting
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
