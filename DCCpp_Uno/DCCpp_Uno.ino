@@ -22,9 +22,9 @@ COPYRIGHT (c) 2013-2016 Gregg E. Berman
 DCC++ BASE STATION is a C++ program written for the Arduino Uno and Arduino Mega
 using the Arduino IDE 1.6.6.
 
-It allows a standard Arduino Uno or Mega with an Arduino Motor Shield (as well as others)
-to be used as a fully-functioning digital command and control (DCC) base station
-for controlling model train layouts that conform to current National Model
+It allows a standard Arduino Uno or Mega with an Arduino Motor Shield (as well as others),
+or a DCC++ Raspberry Pi HAT, to be used as a fully-functioning digital command and control
+(DCC) base station for controlling model train layouts that conform to current National Model
 Railroad Association (NMRA) DCC standards.
 
 This version of DCC++ BASE STATION supports:
@@ -46,10 +46,17 @@ This version of DCC++ BASE STATION supports:
 DCC++ BASE STATION is controlled with simple text commands received via
 the Arduino's serial interface.  Users can type these commands directly
 into the Arduino IDE Serial Monitor, or can send such commands from another
-device or computer program.
+device or computer program. On the DCC++ HAT, serial commands are sent directly through
+the UART port available on the GPIO haeder of the Raspberry Pi.
 
 When compiled for the Arduino Mega, an Ethernet Shield can be used for network
 communications instead of using serial communications.
+
+When the DCC++ HAT is used, programming must be carried out by the ICSP header. The programmer
+cab be most any arduino board. Upload the ArduinoISP program from the examples to the Arduino, 
+connect the ISP header to the Arduino as specified in the example code, and then plug the 
+Arduino into your computer and select Sketch>Upload using Programmer. Ensure that you have selected
+the "Arduino/Genuino Uno" option and "Arduino as ISP" from the Tools menu.
 
 DCC++ CONTROLLER, available separately under a similar open-source
 license, is a Java program written using the Processing library and Processing IDE
@@ -79,8 +86,8 @@ REFERENCES:
 
 BRIEF NOTES ON THE THEORY AND OPERATION OF DCC++ BASE STATION:
 
-DCC++ BASE STATION for the Uno configures the OC0B interrupt pin associated with Timer 0,
-and the OC1B interupt pin associated with Timer 1, to generate separate 0-5V
+DCC++ BASE STATION for the Uno/DCC++ HAT configures the OC0B interrupt pin associated 
+with Timer 0, and the OC1B interupt pin associated with Timer 1, to generate separate 0-5V
 unipolar signals that each properly encode zero and one bits conforming with
 DCC timing standards.  When compiled for the Mega, DCC++ BASE STATION uses OC3B instead of OC0B.
 
@@ -129,11 +136,14 @@ For the Mega, the OC1B output is produced directly on pin 12, so no jumper is ne
 Motor Shield's DIRECTION A input.  However, one small jumper wire is needed to connect the Mega's OC3B output (pin 2)
 to the Motor Shield's DIRECTION B input (pin 13).
 
+For the DCC++ HAT, all pins are properly connected to the motor driver chip (5A), and no jumpers are required.
+
 Other Motor Shields may require different sets of jumper or configurations (see Config.h and DCCpp_Uno.h for details).
 
 When configured as such, the CHANNEL A and CHANNEL B outputs of the Motor Shield may be
 connected directly to the tracks.  This software assumes CHANNEL A is connected
-to the Main Operations Track, and CHANNEL B is connected to the Programming Track.
+to the Main Operations Track, and CHANNEL B is connected to the Programming Track. The 
+Programming Track and the Main Operations Track are labelled on the DCC++ HAT. 
 
 DCC++ BASE STATION in split into multiple modules, each with its own header file:
 
@@ -234,7 +244,7 @@ void setup(){
   if(!digitalRead(A5))
     showConfiguration();
 
-  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
+  Serial.print("<iDCC++ BASE STATION");      // Print Status to Serial Line regardless of COMM_TYPE setting so user can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
   Serial.print(MOTOR_SHIELD_NAME);
@@ -309,7 +319,7 @@ void setup(){
 
   // CONFIGURE EITHER TIMER_0 (UNO) OR TIMER_3 (MEGA) TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B (UNO) OR OC3B (MEGA) INTERRUPT PINS
   
-#ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+#ifdef ARDUINO_AVR_UNO      // Configuration for UNO/DCC++ HAT
   
   // Directon Pin for Motor Shield Channel B - PROGRAMMING TRACK
   // Controlled by Arduino 8-bit TIMER 0 / OC0B Interrupt Pin
@@ -458,7 +468,7 @@ ISR(TIMER1_COMPB_vect){              // set interrupt service for OCR1B of TIMER
   DCC_SIGNAL(mainRegs,1)
 }
 
-#ifdef ARDUINO_AVR_UNO      // Configuration for UNO
+#ifdef ARDUINO_AVR_UNO      // Configuration for UNO/DCC++ HAT
 
 ISR(TIMER0_COMPB_vect){              // set interrupt service for OCR1B of TIMER-0 which flips direction bit of Motor Shield Channel B controlling Prog Track
   DCC_SIGNAL(progRegs,0)

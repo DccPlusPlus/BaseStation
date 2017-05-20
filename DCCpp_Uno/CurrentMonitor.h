@@ -15,7 +15,7 @@ Part of DCC++ BASE STATION for the Arduino
 #define  CURRENT_SAMPLE_SMOOTHING   0.01
 #define  CURRENT_SAMPLE_MAX         300
 
-#ifdef ARDUINO_AVR_UNO                        // Configuration for UNO
+#ifdef ARDUINO_AVR_UNO                        // Configuration for UNO/DCC++ HAT
   #define  CURRENT_SAMPLE_TIME        10
 #else                                         // Configuration for MEGA    
   #define  CURRENT_SAMPLE_TIME        1

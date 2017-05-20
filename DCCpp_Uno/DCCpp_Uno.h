@@ -16,7 +16,7 @@ Part of DCC++ BASE STATION for the Arduino
 // RELEASE VERSION
 /////////////////////////////////////////////////////////////////////////////////////
 
-#define VERSION "1.2.1+"
+#define VERSION "1.2.2+"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // AUTO-SELECT ARDUINO BOARD
@@ -28,14 +28,22 @@ Part of DCC++ BASE STATION for the Arduino
 
 #if defined  ARDUINO_AVR_UNO
 
-  #define ARDUINO_TYPE    "UNO"
+  #if MOTOR_SHIELD_TYPE == 3
+  
+    #define ARDUINO_TYPE    "DCC++ HAT"
+    
+  #else
+  
+    #define ARDUINO_TYPE    "UNO"
+    
+  #endif
 
   #define DCC_SIGNAL_PIN_MAIN 10          // Ardunio Uno  - uses OC1B
   #define DCC_SIGNAL_PIN_PROG 5           // Arduino Uno  - uses OC0B
 
   #if COMM_INTERFACE != 0                 // Serial was not selected
 
-    #error CANNOT COMPILE - DCC++ FOR THE UNO CAN ONLY USE SERIAL COMMUNICATION - PLEASE SELECT THIS IN THE CONFIG FILE
+    #error CANNOT COMPILE - DCC++ FOR THE UNO/DCC++ HAT CAN ONLY USE SERIAL COMMUNICATION - PLEASE SELECT THIS IN THE CONFIG FILE
 
   #endif
 
@@ -48,7 +56,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 #else
 
-  #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO OR AN ARDUINO MEGA 1280/2560
+  #error CANNOT COMPILE - DCC++ ONLY WORKS WITH AN ARDUINO UNO, DCC++ HAT, OR AN ARDUINO MEGA 1280/2560
 
 #endif
 
@@ -81,6 +89,19 @@ Part of DCC++ BASE STATION for the Arduino
 
   #define DIRECTION_MOTOR_CHANNEL_PIN_A 7
   #define DIRECTION_MOTOR_CHANNEL_PIN_B 8
+
+#elif MOTOR_SHIELD_TYPE == 2
+
+  #define MOTOR_SHIELD_NAME "DCC++ HAT - INTEGRATED MOTOR DRIVER"
+
+  #define SIGNAL_ENABLE_PIN_MAIN 3
+  #define SIGNAL_ENABLE_PIN_PROG 11
+
+  #define CURRENT_MONITOR_PIN_MAIN A0
+  #define CURRENT_MONITOR_PIN_PROG A1
+
+  #define DIRECTION_MOTOR_CHANNEL_PIN_A 10
+  #define DIRECTION_MOTOR_CHANNEL_PIN_B 5
 
 #else
 
