@@ -54,12 +54,14 @@ Depending on whether the physical sensor is acting as an "event-trigger" or a "d
 decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 **********************************************************************/
-
+#include <ESP8266WiFi.h>
 #include "DCCpp_Uno.h"
 #include "Sensor.h"
 #include "EEStore.h"
 #include <EEPROM.h>
-#include "Comm.h"
+
+extern WiFiClient   client;
+extern WiFiServer   server;
 
 ///////////////////////////////////////////////////////////////////////////////
   
@@ -71,14 +73,14 @@ void Sensor::check(){
     
     if(!tt->active && tt->signal<0.5){
       tt->active=true;
-      INTERFACE.print("<Q");
-      INTERFACE.print(tt->data.snum);
-      INTERFACE.print(">");
+      client.print("<Q");
+      client.print(tt->data.snum);
+      client.print(">");
     } else if(tt->active && tt->signal>0.9){
       tt->active=false;
-      INTERFACE.print("<q");
-      INTERFACE.print(tt->data.snum);
-      INTERFACE.print(">");
+      client.print("<q");
+      client.print(tt->data.snum);
+      client.print(">");
     }
   } // loop over all sensors
     
@@ -102,7 +104,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      INTERFACE.print("<X>");
+      client.print("<X>");
     return(tt);
   }
   
@@ -115,7 +117,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
 
   if(v==1)
-    INTERFACE.print("<O>");
+    client.print("<O>");
   return(tt);
   
 }
@@ -135,7 +137,7 @@ void Sensor::remove(int n){
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    INTERFACE.print("<X>");
+    client.print("<X>");
     return;
   }
   
@@ -146,7 +148,7 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  INTERFACE.print("<O>");
+  client.print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,18 +157,18 @@ void Sensor::show(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    INTERFACE.print("<X>");
+    client.print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    INTERFACE.print("<Q");
-    INTERFACE.print(tt->data.snum);
-    INTERFACE.print(" ");
-    INTERFACE.print(tt->data.pin);
-    INTERFACE.print(" ");
-    INTERFACE.print(tt->data.pullUp);
-    INTERFACE.print(">");
+    client.print("<Q");
+    client.print(tt->data.snum);
+    client.print(" ");
+    client.print(tt->data.pin);
+    client.print(" ");
+    client.print(tt->data.pullUp);
+    client.print(">");
   }
 }
 
@@ -176,14 +178,14 @@ void Sensor::status(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    INTERFACE.print("<X>");
+    client.print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    INTERFACE.print(tt->active?"<Q":"<q");
-    INTERFACE.print(tt->data.snum);
-    INTERFACE.print(">");
+    client.print(tt->active?"<Q":"<q");
+    client.print(tt->data.snum);
+    client.print(">");
   }
 }
 
@@ -208,7 +210,7 @@ void Sensor::parse(char *c){
     break;
 
     case 2:                     // invalid number of arguments
-      INTERFACE.print("<X>");
+      client.print("<X>");
       break;
   }
 }
