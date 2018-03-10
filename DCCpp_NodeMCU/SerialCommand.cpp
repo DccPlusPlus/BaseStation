@@ -16,7 +16,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 #include <ESP8266WiFi.h>
 #include "SerialCommand.h"
-#include "DCCpp_Uno.h"
+#include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
 #include "EEStore.h"
 

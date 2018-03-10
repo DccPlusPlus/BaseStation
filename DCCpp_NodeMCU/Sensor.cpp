@@ -55,7 +55,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 **********************************************************************/
 #include <ESP8266WiFi.h>
-#include "DCCpp_Uno.h"
+#include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
 #include "EEStore.h"
 #include <EEPROM.h>
