@@ -14,7 +14,11 @@ Part of DCC++ BASE STATION for the Arduino
 //  0 = ARDUINO MOTOR SHIELD          (MAX 18V/2A PER CHANNEL)
 //  1 = POLOLU MC33926 MOTOR SHIELD   (MAX 28V/3A PER CHANNEL)
 
-#define MOTOR_SHIELD_TYPE   0
+#define MOTOR_SHIELD_TYPE   1
+
+// SET THIS TO 1 IF THE MOTOR SHIELD HAS CURRENT FEEDBACK
+// SET THIS TO 0 IF THE MOTOR SHIELD DOES NOT HAVE CURRENT FEEDBACK
+#define MOTOR_SHIELD_SUPPORTS_FEEDBACK 0
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -39,6 +43,7 @@ Part of DCC++ BASE STATION for the Arduino
 //
 
 //#define IP_ADDRESS { 192, 168, 1, 200 }
+//#define IP_ADDRESS { 192, 168, 0, 42 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -53,6 +58,27 @@ Part of DCC++ BASE STATION for the Arduino
 //
 
 #define MAC_ADDRESS {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF }
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// ENABLE THE WITHROTTLE INTERFACE
+//
+
+#define WITHROTTLE_SUPPORT 1
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// ENABLE BONJOUR/ZEROCONF SUPPORT
+//
+
+#define BONJOUR 0
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// ENABLE THE LCD THROTTLE. REQUIRES AN LCD WITH 5 BUTTONS.
+//
+
+#define LCD_THROTTLE 0
 
 /////////////////////////////////////////////////////////////////////////////////////
 

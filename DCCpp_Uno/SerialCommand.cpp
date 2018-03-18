@@ -14,6 +14,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 // See SerialCommand::parse() below for defined text commands.
 
+
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
 #include "Accessories.h"
@@ -21,6 +22,9 @@ Part of DCC++ BASE STATION for the Arduino
 #include "Outputs.h"
 #include "EEStore.h"
 #include "Comm.h"
+#ifdef WITHROTTLE_SUPPORT
+#include "WiThrottle.hpp"
+#endif
 
 extern int __heap_start, *__brkval;
 
@@ -30,6 +34,7 @@ char SerialCommand::commandString[MAX_COMMAND_LENGTH+1];
 volatile RegisterList *SerialCommand::mRegs;
 volatile RegisterList *SerialCommand::pRegs;
 CurrentMonitor *SerialCommand::mMonitor;
+bool newConnect;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -38,6 +43,7 @@ void SerialCommand::init(volatile RegisterList *_mRegs, volatile RegisterList *_
   pRegs=_pRegs;
   mMonitor=_mMonitor;
   sprintf(commandString,"");
+  newConnect = true;
 } // SerialCommand:SerialCommand
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,13 +54,21 @@ void SerialCommand::process(){
   #if COMM_TYPE == 0
 
     while(INTERFACE.available()>0){    // while there is data on the serial line
+      if (newConnect) {
+        WiThrottle::sendIntroMessage();
+        newConnect = false;
+      }
      c=INTERFACE.read();
-     if(c=='<')                    // start of new command
-       sprintf(commandString,"");
-     else if(c=='>')               // end of new command
-       parse(commandString);                    
-     else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from serial line
-       sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
+     if (WiThrottle::isWTCommand(c)) {
+      WiThrottle::readCommand(c);
+     } else {
+      if(c=='<')                    // start of new command
+        sprintf(commandString,"");
+      else if(c=='>')               // end of new command
+        parse(commandString);                    
+      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from serial line
+        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
+     }
     } // while
   
   #elif COMM_TYPE == 1
@@ -62,16 +76,28 @@ void SerialCommand::process(){
     EthernetClient client=INTERFACE.available();
 
     if(client){
-      while(client.connected() && client.available()){        // while there is data on the network
-      c=client.read();
-      if(c=='<')                    // start of new command
-        sprintf(commandString,"");
-      else if(c=='>')               // end of new command
-        parse(commandString);                    
-      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
-        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
-      } // while
-    }
+#ifdef WITHROTTLE_SUPPORT
+      WiThrottle::sendIntroMessage();
+#endif
+      while(client.connected()) {
+	while (client.available()) {        // while there is data on the network
+	  c=client.read();
+#ifdef WITHROTTLE_SUPPORT
+	  if (WiThrottle::isWTCommand(c)) {
+	    WiThrottle::readCommand(c);
+	  } else {
+#endif
+	    // Process as a DCC++ command
+	    if(c=='<')                    // start of new command
+	      sprintf(commandString,"");
+	    else if(c=='>')               // end of new command
+	      parse(commandString);                    
+	    else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
+	      sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
+	  } // else withrottle
+	} // while available
+      }// while connected
+    } // if client
 
   #endif
 
@@ -80,6 +106,8 @@ void SerialCommand::process(){
 ///////////////////////////////////////////////////////////////////////////////
 
 void SerialCommand::parse(char *com){
+
+ Serial.println("WCMD: " + String(com));
   
   switch(com[0]){
 

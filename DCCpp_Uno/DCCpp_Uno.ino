@@ -177,6 +177,12 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "EEStore.h"
 #include "Config.h"
 #include "Comm.h"
+#if (LCD_THROTTLE == 1)
+#include "LCDThrottle.h"
+#endif
+#if ((COMM_TYPE == 1) && (BONJOUR == 1))
+#include <EthernetBonjour.h>
+#endif
 
 void showConfiguration();
 
@@ -185,6 +191,9 @@ void showConfiguration();
 #if COMM_TYPE == 1
   byte mac[] =  MAC_ADDRESS;                                // Create MAC address (to be used for DHCP when initializing server)
   EthernetServer INTERFACE(ETHERNET_PORT);                  // Create and instance of an EnternetServer
+#if (BONJOUR == 1)
+  const char bonjourname = "DCCpp._withrottle._tcp";  
+#endif
 #endif
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
@@ -196,11 +205,23 @@ volatile RegisterList progRegs(2);                     // create a shorter list 
 CurrentMonitor mainMonitor(CURRENT_MONITOR_PIN_MAIN,"<p2>");  // create monitor for current on Main Track
 CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor for current on Program Track
 
+#if (LCD_THROTTLE == 1)
+LCDThrottle *lcdThrottle;
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN ARDUINO LOOP
 ///////////////////////////////////////////////////////////////////////////////
 
 void loop(){
+
+#if (LCD_THROTTLE == 1)
+  lcdThrottle->run();
+#endif
+
+#if ((COMM_TYPE == 1 && BONJOUR == 1))
+  EthernetBonjour.run();
+#endif
   
   SerialCommand::process();              // check for, and process, and new serial commands
   
@@ -210,7 +231,7 @@ void loop(){
   }
 
   Sensor::check();    // check sensors for activate/de-activate
-  
+
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -221,6 +242,11 @@ void setup(){
 
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
+
+  #if (LCD_THROTTLE == 1)
+  lcdThrottle  = new LCDThrottle();
+  lcdThrottle->begin(1);
+  #endif
 
   #ifdef SDCARD_CS
     pinMode(SDCARD_CS,OUTPUT);
@@ -253,6 +279,11 @@ void setup(){
       Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
     #endif
     INTERFACE.begin();
+    
+    #if (BONJOUR == 1)
+    EthernetBonjour.begin("arduino");
+    EthernetBonjour.addServiceRecord("DCCpp._withrottle", ETHERNET_PORT, MDNSServiceTCP, "jmri=4.5.7");
+    #endif
   #endif
              
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line

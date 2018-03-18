@@ -65,7 +65,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
   
 void Sensor::check(){    
   Sensor *tt;
-
+/*
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
     tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
     
@@ -81,7 +81,7 @@ void Sensor::check(){
       INTERFACE.print(">");
     }
   } // loop over all sensors
-    
+    */
 } // Sensor::check
 
 ///////////////////////////////////////////////////////////////////////////////
