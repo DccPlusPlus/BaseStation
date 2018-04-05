@@ -59,7 +59,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
   DCCpp_NodeMCU:    declares required global objects and contains initial Arduino setup()
                     and Arduino loop() functions, as well as and optional array of Sensors 
 
-  SerialCommand:    contains methods to read and interpret text commands from the WiFi interface,
+  WiFiCommand:    contains methods to read and interpret text commands from the WiFi interface,
                     process those instructions.
 
   Sensor:           contains methods to monitor and report on the status of optionally-defined infrared
@@ -79,41 +79,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
 #include "EEstore.h"
-#include "SerialCommand.h"
-
-WiFiServer server(ETHERNET_PORT);
-WiFiClient client;
-
-void connectToWiFi()
-{
-  Serial.print("\n\nConnecting to ");
-  Serial.println(_SSID);
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  WiFi.begin( _SSID, _PASSWORD );
-  WiFi.hostname( _HOSTNAME );
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");  
-  }
-  Serial.println("\nWiFi connected");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  WiFi.disconnect();
-  
-  Serial.println( WiFi.softAP( _HOSTNAME, _PASSWORD, 6) ? "AP Started": "AP failed" );
-  Serial.print("\n\nConnecting to ");
-  Serial.println( _SSID );
-  WiFi.mode(WIFI_AP);
-  WiFi.begin( _SSID, _PASSWORD );
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");  
-  }
-  Serial.println("\nWiFi connected");
-  server.begin();
-}
-
+#include "WiFiCommand.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN ARDUINO LOOP
@@ -121,8 +87,8 @@ void connectToWiFi()
 
 void loop(){
   
-  SerialCommand::process();              // check for, and process, and new serial commands
-  Sensor::check();    // check sensors for activate/de-activate
+  WiFiCommand::process();   // check for, and process, and new WiFi commands
+  Sensor::check();          // check sensors for activate/de-activate
   
 } // loop
 
@@ -136,7 +102,8 @@ void setup(){
   Serial.flush();
 
   EEStore::init();                                          // initialize and load Turnout and Sensor definitions stored in EEPROM
-
+  WiFiCommand::init();
+  
   Serial.print("<iDCC++ BASE STATION FOR ESP8266 ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
@@ -146,13 +113,10 @@ void setup(){
   Serial.print(" ");
   Serial.print(__TIME__);
   Serial.print(">");
-
   Serial.print("<N");
   Serial.print("1");
   Serial.print(": ");
-
-  connectToWiFi();
              
   Serial.print(WiFi.localIP());
-  Serial.print(">");
+  Serial.println(">");
 } // setup

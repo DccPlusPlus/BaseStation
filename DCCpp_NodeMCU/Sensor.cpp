@@ -55,13 +55,12 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 **********************************************************************/
 #include <ESP8266WiFi.h>
+#include "Config.h"
 #include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
 #include "EEStore.h"
+#include "WiFiCommand.h"
 #include <EEPROM.h>
-
-extern WiFiClient   client;
-extern WiFiServer   server;
 
 ///////////////////////////////////////////////////////////////////////////////
   
@@ -73,14 +72,14 @@ void Sensor::check(){
     
     if(!tt->active && tt->signal<0.5){
       tt->active=true;
-      client.print("<Q");
-      client.print(tt->data.snum);
-      client.print(">");
+      WiFiCommand::print("<Q");
+      WiFiCommand::print(tt->data.snum);
+      WiFiCommand::print(">");
     } else if(tt->active && tt->signal>0.9){
       tt->active=false;
-      client.print("<q");
-      client.print(tt->data.snum);
-      client.print(">");
+      WiFiCommand::print("<q");
+      WiFiCommand::print(tt->data.snum);
+      WiFiCommand::print(">");
     }
   } // loop over all sensors
     
@@ -104,7 +103,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      client.print("<X>");
+      WiFiCommand::print("<X>");
     return(tt);
   }
   
@@ -117,7 +116,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
 
   if(v==1)
-    client.print("<O>");
+    WiFiCommand::print("<O>");
   return(tt);
   
 }
@@ -137,7 +136,7 @@ void Sensor::remove(int n){
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    client.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
   
@@ -148,7 +147,7 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  client.print("<O>");
+  WiFiCommand::print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -157,18 +156,18 @@ void Sensor::show(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    client.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    client.print("<Q");
-    client.print(tt->data.snum);
-    client.print(" ");
-    client.print(tt->data.pin);
-    client.print(" ");
-    client.print(tt->data.pullUp);
-    client.print(">");
+    WiFiCommand::print("<Q");
+    WiFiCommand::print(tt->data.snum);
+    WiFiCommand::print(" ");
+    WiFiCommand::print(tt->data.pin);
+    WiFiCommand::print(" ");
+    WiFiCommand::print(tt->data.pullUp);
+    WiFiCommand::print(">");
   }
 }
 
@@ -178,14 +177,14 @@ void Sensor::status(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    client.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    client.print(tt->active?"<Q":"<q");
-    client.print(tt->data.snum);
-    client.print(">");
+    WiFiCommand::print(tt->active?"<Q":"<q");
+    WiFiCommand::print(tt->data.snum);
+    WiFiCommand::print(">");
   }
 }
 
@@ -210,7 +209,7 @@ void Sensor::parse(char *c){
     break;
 
     case 2:                     // invalid number of arguments
-      client.print("<X>");
+      WiFiCommand::print("<X>");
       break;
   }
 }

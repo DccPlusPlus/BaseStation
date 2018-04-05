@@ -15,8 +15,6 @@ Part of DCC++ BASE STATION for the Arduino
 ///////////////////////////////////////////////////////////////////////////////
 
 void EEStore::init(){
-
-  
   eeStore=(EEStore *)calloc(1,sizeof(EEStore));
 
   EEPROM.begin( 4096 );

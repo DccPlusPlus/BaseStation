@@ -11,6 +11,7 @@ Part of DCC++ BASE STATION for the Arduino
 //
 // DEFINE PORT TO USE FOR ETHERNET COMMUNICATIONS INTERFACE
 //
+/////////////////////////////////////////////////////////////////////////////////////
 
 #define ETHERNET_PORT 2560
 
@@ -22,4 +23,4 @@ Part of DCC++ BASE STATION for the Arduino
 
 #define _SSID ""
 #define _PASSWORD ""
-#define _HOSTNAME "block01"
+#define _HOSTNAME "sensor02"
