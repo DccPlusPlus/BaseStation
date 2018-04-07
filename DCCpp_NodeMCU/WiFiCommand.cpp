@@ -19,6 +19,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "DCCpp_NodeMCU.h"
 #include "WiFiCommand.h"
 #include "Sensor.h"
+#include "RemoteSensor.h"
 #include "EEStore.h"
 
 WiFiServer   server(ETHERNET_PORT);
@@ -152,7 +153,7 @@ void WiFiCommand::parse(char *com){
  *    returns: series of status messages that can be read by an client to determine status of DCC++ Base Station and important settings
  */
       WiFiCommand::print("<p0>");
-      WiFiCommand::print("<iDCC++ BASE STATION FOR ARDUINO ");
+      WiFiCommand::print("<iDCC++ BASE STATION FOR ESP8266 ");
       WiFiCommand::print(ARDUINO_TYPE);
       WiFiCommand::print(": V-");
       WiFiCommand::print(VERSION);
@@ -211,7 +212,14 @@ void WiFiCommand::parse(char *com){
 */
       WiFiCommand::print("\r");
       break;  
-
+    case 'R': 
+      if( com[1] == 'S' )
+/*   
+ *   *** SEE REMOTESENSOR.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "RS" COMMAND
+ *   USED TO CREATE/EDIT/REMOVE/SHOW SENSOR DEFINITIONS
+ */
+        RemoteSensor::parse(com+2);
+      break;
   } // switch
 }; // WiFiCommand::parse
 

@@ -78,6 +78,7 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "Config.h"
 #include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
+#include "RemoteSensor.h"
 #include "EEstore.h"
 #include "WiFiCommand.h"
 
@@ -88,8 +89,8 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 void loop(){
   
   WiFiCommand::process();   // check for, and process, and new WiFi commands
+  RemoteSensor::check();    // check remotesensors for inactivity
   Sensor::check();          // check sensors for activate/de-activate
-  
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////

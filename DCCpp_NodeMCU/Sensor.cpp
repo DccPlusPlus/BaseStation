@@ -68,14 +68,15 @@ void Sensor::check(){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
+    if( tt->data.pin >= 0 ) // not for remote sensors
+      tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
     
-    if(!tt->active && tt->signal<0.5){
+    if(!tt->active && (tt->signal<0.5) ){
       tt->active=true;
       WiFiCommand::print("<Q");
       WiFiCommand::print(tt->data.snum);
       WiFiCommand::print(">");
-    } else if(tt->active && tt->signal>0.9){
+    } else if(tt->active && (tt->signal>0.9) ){
       tt->active=false;
       WiFiCommand::print("<q");
       WiFiCommand::print(tt->data.snum);
@@ -110,11 +111,12 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   tt->data.snum=snum;
   tt->data.pin=pin;
   tt->data.pullUp=(pullUp==0?LOW:HIGH);
-  tt->active=false;
-  tt->signal=1;
-  pinMode(pin,INPUT);         // set mode to input
-  digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
-
+  if( pin >= 0 ) {  // don't do this stuff for remote sensors
+    tt->active=false;
+    tt->signal=1;
+    pinMode(pin,INPUT);         // set mode to input
+    digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
+  }
   if(v==1)
     WiFiCommand::print("<O>");
   return(tt);
@@ -197,11 +199,17 @@ void Sensor::parse(char *c){
   switch(sscanf(c,"%d %d %d",&n,&s,&m)){
     
     case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
-      create(n,s,m,1);
+      if( n < REMOTE_SENSORS_FIRST_SENSOR )
+        create(n,s,m,1);
+      else
+        WiFiCommand::print("<X>");
     break;
 
     case 1:                     // argument is a string with id number only
-      remove(n);
+      if( n < REMOTE_SENSORS_FIRST_SENSOR )
+        remove(n);
+      else
+        WiFiCommand::print("<X>");
     break;
     
     case -1:                    // no arguments
@@ -235,12 +243,14 @@ void Sensor::store(){
   tt=firstSensor;
   EEStore::eeStore->data.nSensors=0;
   
-  while(tt!=NULL){
-    EEPROM.put(EEStore::pointer(),tt->data);
-    EEStore::advance(sizeof(tt->data));
+  while(tt!=NULL) {
+    if( tt->data.pin >= 0 ) {  // don't store remote sensors
+      EEPROM.put(EEStore::pointer(),tt->data);
+      EEStore::advance(sizeof(tt->data));
+      EEStore::eeStore->data.nSensors++;
+    }  
     tt=tt->nextSensor;
-    EEStore::eeStore->data.nSensors++;
-  }  
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
