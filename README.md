@@ -20,4 +20,8 @@ This particular version only supports sensor inputs.
 
 For more information on the overall DCC++ system, please follow the links in the PDF file.
 
--March 10, 2017
+-March 10, 2018
+
+Support for multiple WiFi clients has been added
+
+-April 5, 2018
