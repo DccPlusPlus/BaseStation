@@ -202,7 +202,7 @@ CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor 
 
 void loop(){
   
-  SerialCommand::process();              // check for, and process, and new serial commands
+  SerialCommand::process();              // check for, and process, any new serial commands
   
   if(CurrentMonitor::checkTime()){      // if sufficient time has elapsed since last update, check current draw on Main and Program Tracks 
     mainMonitor.check();
@@ -227,14 +227,14 @@ void setup(){
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
   #endif
 
-  EEStore::init();                                          // initialize and load Turnout and Sensor definitions stored in EEPROM
+  EEStore::init();                                          // initialize and load Accessory (Turnout), Output, and Sensor definitions stored in EEPROM
 
   pinMode(A5,INPUT);                                       // if pin A5 is grounded upon start-up, print system configuration and halt
   digitalWrite(A5,HIGH);
   if(!digitalRead(A5))
     showConfiguration();
 
-  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
+  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so user can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
   Serial.print(MOTOR_SHIELD_NAME);

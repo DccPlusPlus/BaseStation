@@ -31,9 +31,8 @@ void CurrentMonitor::check(){
   if(current>CURRENT_SAMPLE_MAX && digitalRead(SIGNAL_ENABLE_PIN_PROG)==HIGH){                    // current overload and Prog Signal is on (or could have checked Main Signal, since both are always on or off together)
     digitalWrite(SIGNAL_ENABLE_PIN_PROG,LOW);                                                     // disable both Motor Shield Channels
     digitalWrite(SIGNAL_ENABLE_PIN_MAIN,LOW);                                                     // regardless of which caused current overload
-    INTERFACE.print(msg);                                                                            // print corresponding error message
+    INTERFACE.print(msg);                                                                         // print corresponding error message
   }    
 } // CurrentMonitor::check  
 
 long int CurrentMonitor::sampleTime=0;
-

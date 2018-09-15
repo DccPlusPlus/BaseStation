@@ -24,7 +24,7 @@ void EEStore::init(){
   EEPROM.get(0,eeStore->data);                                       // get eeStore data 
   
   if(strncmp(eeStore->data.id,EESTORE_ID,sizeof(EESTORE_ID))!=0){    // check to see that eeStore contains valid DCC++ ID
-    sprintf(eeStore->data.id,EESTORE_ID);                           // if not, create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
+    sprintf(eeStore->data.id,EESTORE_ID);                            // if not, create blank eeStore structure (no turnouts, no sensors, no outputs) and save it back to EEPROM
     eeStore->data.nTurnouts=0;
     eeStore->data.nSensors=0;
     eeStore->data.nOutputs=0;
@@ -42,7 +42,7 @@ void EEStore::init(){
 
 void EEStore::clear(){
     
-  sprintf(eeStore->data.id,EESTORE_ID);                           // create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
+  sprintf(eeStore->data.id,EESTORE_ID);                              // create blank eeStore structure (no turnouts, no sensors, no outputs) and save it back to EEPROM
   eeStore->data.nTurnouts=0;
   eeStore->data.nSensors=0;
   eeStore->data.nOutputs=0;
@@ -80,4 +80,3 @@ int EEStore::pointer(){
 
 EEStore *EEStore::eeStore=NULL;
 int EEStore::eeAddress=0;
-

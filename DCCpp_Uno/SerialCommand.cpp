@@ -47,11 +47,11 @@ void SerialCommand::process(){
     
   #if COMM_TYPE == 0
 
-    while(INTERFACE.available()>0){    // while there is data on the serial line
+    while(INTERFACE.available()>0){                       // while there is data on the serial line
      c=INTERFACE.read();
-     if(c=='<')                    // start of new command
+     if(c=='<')                                           // start of new command
        sprintf(commandString,"");
-     else if(c=='>')               // end of new command
+     else if(c=='>')                                      // end of new command
        parse(commandString);                    
      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from serial line
        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
@@ -62,14 +62,14 @@ void SerialCommand::process(){
     EthernetClient client=INTERFACE.available();
 
     if(client){
-      while(client.connected() && client.available()){        // while there is data on the network
+      while(client.connected() && client.available()){    // while there is data on the network
       c=client.read();
-      if(c=='<')                    // start of new command
+      if(c=='<')                                          // start of new command
         sprintf(commandString,"");
-      else if(c=='>')               // end of new command
+      else if(c=='>')                                     // end of new command
         parse(commandString);                    
-      else if(strlen(commandString)<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
-        sprintf(commandString,"%s%c",commandString,c);     // otherwise, character is ignored (but continue to look for '<' or '>')
+      else if(strlen(commandString)<MAX_COMMAND_LENGTH)   // if comandString still has space, append character just read from network
+        sprintf(commandString,"%s%c",commandString,c);    // otherwise, character is ignored (but continue to look for '<' or '>')
       } // while
     }
 
@@ -496,7 +496,7 @@ void SerialCommand::parse(char *com){
       mRegs->writeTextPacket(com+1);
       break;
 
-/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE MAIN OPERATIONS TRACK  ****/    
+/***** WRITE A DCC PACKET TO ONE OF THE REGSITERS DRIVING THE PROGRAMMING TRACK  ****/    
 
     case 'P':       // <P REGISTER BYTE1 BYTE2 [BYTE3] [BYTE4] [BYTE5]>
 /*
@@ -567,5 +567,3 @@ void SerialCommand::parse(char *com){
 }; // SerialCommand::parse
 
 ///////////////////////////////////////////////////////////////////////////////
-
-
