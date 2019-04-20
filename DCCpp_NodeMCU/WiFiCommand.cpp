@@ -19,6 +19,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "DCCpp_NodeMCU.h"
 #include "WiFiCommand.h"
 #include "Sensor.h"
+#include "Outputs.h"
 #include "RemoteSensor.h"
 #include "EEStore.h"
 
@@ -70,8 +71,12 @@ void WiFiCommand::process(){
       if (!client[i] || !client[i].connected()) {
         if (client[i]) {
           client[i].stop();
+          Serial.print("Stop client ");
+          Serial.println( i );
         }
         client[i] = server.available();
+        Serial.print("Connect client ");
+        Serial.print( i );
         continue;
       }
     }
@@ -85,7 +90,7 @@ void WiFiCommand::process(){
           if(c=='<')                    // start of new command
             sprintf(commandString[i],"");
           else if(c=='>') {              // end of new command
-//            Serial.print(commandString);
+            Serial.print(commandString[i]);
             parse(commandString[i]);
           }
           else if(strlen(commandString[i])<MAX_COMMAND_LENGTH)    // if comandString still has space, append character just read from network
@@ -103,7 +108,7 @@ void WiFiCommand::parse(char *com){
   switch(com[0]){
     case 'T': // process turnouts
     case 'Z': // process outputs
-      WiFiCommand::print("<X>");     // nothing defined for now
+      Output::parse(com+1);
       break;
 
     case 'S': 

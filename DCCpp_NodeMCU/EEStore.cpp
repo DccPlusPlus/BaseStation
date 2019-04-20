@@ -10,6 +10,7 @@ Part of DCC++ BASE STATION for the Arduino
 #include "DCCpp_NodeMCU.h"
 #include "EEStore.h"
 #include "Sensor.h"
+#include "Outputs.h"
 #include <EEPROM.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +31,8 @@ void EEStore::init(){
   
   reset();            // set memory pointer to first free EEPROM space
   Sensor::load();     // load sensor definitions
+  Output::load();    // load output definitions
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,7 +55,8 @@ void EEStore::clear(){
 void EEStore::store(){
   reset();
   EEPROM.begin( 4096 );
-  Sensor::store();  
+  Sensor::store();
+  Output::store();  
   EEPROM.put(0,eeStore->data); 
   EEPROM.commit();    
   EEPROM.end();
