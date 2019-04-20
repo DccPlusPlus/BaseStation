@@ -71,12 +71,13 @@ the state of any outputs being monitored or controlled by a separate interface o
 
 **********************************************************************/
 
+#include <ESP8266WiFi.h>
+#include "Config.h"
+#include "DCCpp_NodeMCU.h"
 #include "Outputs.h"
-#include "SerialCommand.h"
-#include "DCCpp_Uno.h"
 #include "EEStore.h"
+#include "WiFiCommand.h"
 #include <EEPROM.h>
-#include "Comm.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -85,12 +86,12 @@ void Output::activate(int s){
   digitalWrite(data.pin,data.oStatus ^ bitRead(data.iFlag,0));      // set state of output pin to HIGH or LOW depending on whether bit zero of iFlag is set to 0 (ACTIVE=HIGH) or 1 (ACTIVE=LOW)
   if(num>0)
     EEPROM.put(num,data.oStatus);
-  INTERFACE.print("<Y");
-  INTERFACE.print(data.id);
+  WiFiCommand::print("<Y");
+  WiFiCommand::print(data.id);
   if(data.oStatus==0)
-    INTERFACE.print(" 0>");
+    WiFiCommand::print(" 0>");
   else
-    INTERFACE.print(" 1>"); 
+    WiFiCommand::print(" 1>"); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +109,7 @@ void Output::remove(int n){
   for(tt=firstOutput;tt!=NULL && tt->data.id!=n;pp=tt,tt=tt->nextOutput);
 
   if(tt==NULL){
-    INTERFACE.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
   
@@ -119,7 +120,7 @@ void Output::remove(int n){
 
   free(tt);
 
-  INTERFACE.print("<O>");
+  WiFiCommand::print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,23 +129,23 @@ void Output::show(int n){
   Output *tt;
 
   if(firstOutput==NULL){
-    INTERFACE.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
     
   for(tt=firstOutput;tt!=NULL;tt=tt->nextOutput){
-    INTERFACE.print("<Y");
-    INTERFACE.print(tt->data.id);
+    WiFiCommand::print("<Y");
+    WiFiCommand::print(tt->data.id);
     if(n==1){
-      INTERFACE.print(" ");
-      INTERFACE.print(tt->data.pin);
-      INTERFACE.print(" ");
-      INTERFACE.print(tt->data.iFlag);
+      WiFiCommand::print(" ");
+      WiFiCommand::print(tt->data.pin);
+      WiFiCommand::print(" ");
+      WiFiCommand::print(tt->data.iFlag);
     }
     if(tt->data.oStatus==0)
-       INTERFACE.print(" 0>");
+       WiFiCommand::print(" 0>");
      else
-       INTERFACE.print(" 1>"); 
+       WiFiCommand::print(" 1>"); 
   }
 }
 
@@ -161,7 +162,7 @@ void Output::parse(char *c){
       if(t!=NULL)
         t->activate(s);
       else
-        INTERFACE.print("<X>");
+        WiFiCommand::print("<X>");
       break;
 
     case 3:                     // argument is string with id number of output followed by a pin number and invert flag
@@ -230,7 +231,7 @@ Output *Output::create(int id, int pin, int iFlag, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      INTERFACE.print("<X>");
+      WiFiCommand::print("<X>");
     return(tt);
   }
   
@@ -243,7 +244,7 @@ Output *Output::create(int id, int pin, int iFlag, int v){
     tt->data.oStatus=bitRead(tt->data.iFlag,1)?bitRead(tt->data.iFlag,2):0;      // sets status to 0 (INACTIVE) is bit 1 of iFlag=0, otherwise set to value of bit 2 of iFlag  
     digitalWrite(tt->data.pin,tt->data.oStatus ^ bitRead(tt->data.iFlag,0));
     pinMode(tt->data.pin,OUTPUT);
-    INTERFACE.print("<O>");
+    WiFiCommand::print("<O>");
   }
   
   return(tt);

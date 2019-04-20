@@ -54,12 +54,13 @@ Depending on whether the physical sensor is acting as an "event-trigger" or a "d
 decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 **********************************************************************/
-
-#include "DCCpp_Uno.h"
+#include <ESP8266WiFi.h>
+#include "Config.h"
+#include "DCCpp_NodeMCU.h"
 #include "Sensor.h"
 #include "EEStore.h"
+#include "WiFiCommand.h"
 #include <EEPROM.h>
-#include "Comm.h"
 
 ///////////////////////////////////////////////////////////////////////////////
   
@@ -67,18 +68,19 @@ void Sensor::check(){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
+    if( tt->data.pin >= 0 ) // not for remote sensors
+      tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
     
-    if(!tt->active && tt->signal<0.5){
+    if(!tt->active && (tt->signal<0.5) ){
       tt->active=true;
-      INTERFACE.print("<Q");
-      INTERFACE.print(tt->data.snum);
-      INTERFACE.print(">");
-    } else if(tt->active && tt->signal>0.9){
+      WiFiCommand::print("<Q");
+      WiFiCommand::print(tt->data.snum);
+      WiFiCommand::print(">");
+    } else if(tt->active && (tt->signal>0.9) ){
       tt->active=false;
-      INTERFACE.print("<q");
-      INTERFACE.print(tt->data.snum);
-      INTERFACE.print(">");
+      WiFiCommand::print("<q");
+      WiFiCommand::print(tt->data.snum);
+      WiFiCommand::print(">");
     }
   } // loop over all sensors
     
@@ -102,20 +104,21 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-      INTERFACE.print("<X>");
+      WiFiCommand::print("<X>");
     return(tt);
   }
   
   tt->data.snum=snum;
   tt->data.pin=pin;
   tt->data.pullUp=(pullUp==0?LOW:HIGH);
-  tt->active=false;
-  tt->signal=1;
-  pinMode(pin,INPUT);         // set mode to input
-  digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
-
+  if( pin >= 0 ) {  // don't do this stuff for remote sensors
+    tt->active=false;
+    tt->signal=1;
+    pinMode(pin,INPUT);         // set mode to input
+    digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
+  }
   if(v==1)
-    INTERFACE.print("<O>");
+    WiFiCommand::print("<O>");
   return(tt);
   
 }
@@ -135,7 +138,7 @@ void Sensor::remove(int n){
   for(tt=firstSensor;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    INTERFACE.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
   
@@ -146,7 +149,7 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  INTERFACE.print("<O>");
+  WiFiCommand::print("<O>");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,18 +158,18 @@ void Sensor::show(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    INTERFACE.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    INTERFACE.print("<Q");
-    INTERFACE.print(tt->data.snum);
-    INTERFACE.print(" ");
-    INTERFACE.print(tt->data.pin);
-    INTERFACE.print(" ");
-    INTERFACE.print(tt->data.pullUp);
-    INTERFACE.print(">");
+    WiFiCommand::print("<Q");
+    WiFiCommand::print(tt->data.snum);
+    WiFiCommand::print(" ");
+    WiFiCommand::print(tt->data.pin);
+    WiFiCommand::print(" ");
+    WiFiCommand::print(tt->data.pullUp);
+    WiFiCommand::print(">");
   }
 }
 
@@ -176,14 +179,14 @@ void Sensor::status(){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    INTERFACE.print("<X>");
+    WiFiCommand::print("<X>");
     return;
   }
     
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    INTERFACE.print(tt->active?"<Q":"<q");
-    INTERFACE.print(tt->data.snum);
-    INTERFACE.print(">");
+    WiFiCommand::print(tt->active?"<Q":"<q");
+    WiFiCommand::print(tt->data.snum);
+    WiFiCommand::print(">");
   }
 }
 
@@ -196,11 +199,17 @@ void Sensor::parse(char *c){
   switch(sscanf(c,"%d %d %d",&n,&s,&m)){
     
     case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
-      create(n,s,m,1);
+      if( n < REMOTE_SENSORS_FIRST_SENSOR )
+        create(n,s,m,1);
+      else
+        WiFiCommand::print("<X>");
     break;
 
     case 1:                     // argument is a string with id number only
-      remove(n);
+      if( n < REMOTE_SENSORS_FIRST_SENSOR )
+        remove(n);
+      else
+        WiFiCommand::print("<X>");
     break;
     
     case -1:                    // no arguments
@@ -208,7 +217,7 @@ void Sensor::parse(char *c){
     break;
 
     case 2:                     // invalid number of arguments
-      INTERFACE.print("<X>");
+      WiFiCommand::print("<X>");
       break;
   }
 }
@@ -234,12 +243,14 @@ void Sensor::store(){
   tt=firstSensor;
   EEStore::eeStore->data.nSensors=0;
   
-  while(tt!=NULL){
-    EEPROM.put(EEStore::pointer(),tt->data);
-    EEStore::advance(sizeof(tt->data));
+  while(tt!=NULL) {
+    if( tt->data.pin >= 0 ) {  // don't store remote sensors
+      EEPROM.put(EEStore::pointer(),tt->data);
+      EEStore::advance(sizeof(tt->data));
+      EEStore::eeStore->data.nSensors++;
+    }  
     tt=tt->nextSensor;
-    EEStore::eeStore->data.nSensors++;
-  }  
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

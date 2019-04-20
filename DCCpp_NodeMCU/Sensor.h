@@ -16,7 +16,7 @@ Part of DCC++ BASE STATION for the Arduino
 
 struct SensorData {
   int snum;
-  byte pin;
+  signed char pin;     // modified to allow negative values as a flag for remote sensors
   byte pullUp;
 };
 
