@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:mega",
+    "sketch": "DCCpp_Uno.ino",
+    "configuration": "cpu=atmega2560"
+}

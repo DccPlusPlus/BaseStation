@@ -185,6 +185,9 @@ void showConfiguration();
 #if COMM_TYPE == 1
   byte mac[] =  MAC_ADDRESS;                                // Create MAC address (to be used for DHCP when initializing server)
   EthernetServer INTERFACE(ETHERNET_PORT);                  // Create and instance of an EnternetServer
+
+#elif COMM_TYPE == 2
+  SoftwareSerial INTERFACE(SOFTWARE_SERIAL_RX, SOFTWARE_SERIAL_TX);
 #endif
 
 // NEXT DECLARE GLOBAL OBJECTS TO PROCESS AND STORE DCC PACKETS AND MONITOR TRACK CURRENTS.
@@ -253,6 +256,9 @@ void setup(){
       Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
     #endif
     INTERFACE.begin();
+  
+  #elif COMM_TYPE == 2
+    INTERFACE.begin(SOFTWARE_SERIAL_BAUDRATE);
   #endif
              
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
@@ -550,6 +556,11 @@ void showConfiguration(){
       Serial.print(" (DHCP)");
     #endif
   
+  #elif COMM_TYPE == 2
+    Serial.print("SOFTWARE SERIAL RX: ");
+    Serial.print(SOFTWARE_SERIAL_RX);
+    Serial.print(" TX: ");
+    Serial.print(SOFTWARE_SERIAL_TX);
   #endif
   Serial.print("\n\nPROGRAM HALTED - PLEASE RESTART ARDUINO");
 

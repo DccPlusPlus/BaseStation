@@ -30,8 +30,9 @@ Part of DCC++ BASE STATION for the Arduino
 //  1 = Arduino.cc Ethernet/SD-Card Shield
 //  2 = Arduino.org Ethernet/SD-Card Shield
 //  3 = Seeed Studio Ethernet/SD-Card Shield W5200
+//  4 = Software Serial Port
 
-#define COMM_INTERFACE   0
+#define COMM_INTERFACE   4
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -55,4 +56,14 @@ Part of DCC++ BASE STATION for the Arduino
 #define MAC_ADDRESS {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEF }
 
 /////////////////////////////////////////////////////////////////////////////////////
+//
+// DEFINE PINS FOR SOFTWARE SERIAL
+//
+
+#define SOFTWARE_SERIAL_RX 30
+#define SOFTWARE_SERIAL_TX 31
+#define SOFTWARE_SERIAL_BAUDRATE 115200
+
+/////////////////////////////////////////////////////////////////////////////////////
+
 

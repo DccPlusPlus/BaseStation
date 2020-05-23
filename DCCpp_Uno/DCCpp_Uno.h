@@ -102,7 +102,9 @@ Part of DCC++ BASE STATION for the Arduino
   #define COMM_TYPE 1
   #define INTERFACE eServer
   #define SDCARD_CS 4
-  
+
+#elif COMM_INTERFACE == 4
+  #define COMM_TYPE 2
 #else
 
   #error CANNOT COMPILE - Please select a proper value for COMM_INTERFACE in CONFIG.H file
